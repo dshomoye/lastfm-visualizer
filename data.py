@@ -16,7 +16,7 @@ class DataHelper:
     
     def __get_scrobbles(self, end=None):
         if not self.SCROBBLES_CACHE:
-            self.SCROBBLES_CACHE = self.lf.get_user_scrobbles()
+            self.SCROBBLES_CACHE = self.lf.get_scrobbles()
         if not self.__scrobbles_parsed:
             self.__parse_scrobbles()
 

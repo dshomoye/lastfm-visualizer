@@ -8,17 +8,18 @@ import pickle
 class LastFM:
     lastfm_api = "http://ws.audioscrobbler.com/2.0/"
     key = None
-    SCROBBLE_FILE="scrobble_cache"
 
     if "LASTFM_API_KEY" in os.environ:
         key = os.environ["LASTFM_API_KEY"]
 
-    def __init__(self,api_key=key):
+    def __init__(self,api_key=key, username='sonofatailor'):
         self.API_KEY=api_key
+        self.username=username
         if not self.API_KEY: raise ValueError("No API KEY passed to LastFM or set in env")
         self.SCROBBLES_CACHE=[]
+        self.SCROBBLE_FILE=f'{username}.scrobbles'
 
-    def get_user_scrobbles(self, username='sonofatailor'):
+    def get_scrobbles(self):
         """
         get all tracks for user.
 
@@ -35,7 +36,7 @@ class LastFM:
         print("downloading...")
         while total_pages > page:
             page+=1
-            t = self.__get_user_track_page(username,page)
+            t = self.__get_scrobbles_page(page)
             self.SCROBBLES_CACHE+=t["recenttracks"]["track"]
             total_pages = int(t["recenttracks"]["@attr"]["totalPages"])
             progress=int(page/total_pages*100)
@@ -44,10 +45,10 @@ class LastFM:
         self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
     
-    def __get_user_track_page(self,username,page):
+    def __get_scrobbles_page(self,page):
         payload = {
             "method":"user.getRecentTracks",
-            "user":username,
+            "user":self.username,
             "limit":200,
             "page":page
         }
@@ -82,11 +83,6 @@ class LastFM:
         return request  
 
 if __name__=="__main__":
-    lf = LastFM()
-    start = datetime.now()
-    tracks = lf.get_user_scrobbles("sonofatailor")
-    end = datetime.now()
-    print(f'started at {start} and ended at {end}')
-    size = sys.getsizeof(tracks)
-    print(f'size of scrobble list is {size}')
+    lf = LastFM(username="sonofatailor")
+    tracks = lf.get_scrobbles()
     print(tracks[-1])
