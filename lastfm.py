@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime
-from dateutil.relativedelta import *
+from dateutil.relativedelta import relativedelta
 import sys
 import os
 import pickle
@@ -16,7 +16,6 @@ class LastFM:
     def __init__(self,api_key=key):
         self.API_KEY=api_key
         if not self.API_KEY: raise ValueError("No API KEY passed to LastFM or set in env")
-        self.__scrobble_cache_date=datetime.now()
         self.SCROBBLES_CACHE=[]
 
     def get_user_scrobbles(self, username='sonofatailor'):
@@ -28,12 +27,10 @@ class LastFM:
         returns:
             (dict) tracks: dictionary representation of user's scrobbles
         """
-
-        if self.__scrobble_cache_date + relativedelta(minutes=60) > datetime.now():
-            if self.SCROBBLES_CACHE:
-                return self.SCROBBLES_CACHE
-            else:
-                if self.__read_scrobbles_from_cache_file(): return self.SCROBBLES_CACHE
+        if self.SCROBBLES_CACHE:
+            return self.SCROBBLES_CACHE
+        else:
+            if self.__read_scrobbles_from_cache_file(): return self.SCROBBLES_CACHE
         page, total_pages = 0,1
         print("downloading...")
         while total_pages > page:
@@ -63,9 +60,12 @@ class LastFM:
     
     def __read_scrobbles_from_cache_file(self):
         try:
-            with open(self.SCROBBLE_FILE, 'rb') as input:
-                self.SCROBBLES_CACHE = pickle.load(input)
-            return True
+            cache_age = datetime.fromtimestamp(os.path.getmtime(self.SCROBBLE_FILE))
+            if cache_age + relativedelta(hours=1) > datetime.now() :
+                with open(self.SCROBBLE_FILE, 'rb') as input:
+                    self.SCROBBLES_CACHE = pickle.load(input)
+                return True
+            else: return False
         except:
             return False
         

@@ -1,6 +1,6 @@
 from lastfm import LastFM
 from datetime import datetime
-from dateutil.relativedelta import *
+from dateutil.relativedelta import relativedelta
 from models import Scrobble, Track
  
 import os
