@@ -20,6 +20,9 @@ class Track:
     def __repr__(self):
         return f"{{Title: {self.title}, Album: {self.album_name}, Artist: {self.artist_name}  }}"
 
+    def __hash__(self):
+        return hash(repr(self))
+
 
 @total_ordering
 class Scrobble:

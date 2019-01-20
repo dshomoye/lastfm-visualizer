@@ -2,6 +2,7 @@ from lastfm import LastFM
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from models import Scrobble, Track
+from collections import Counter
  
 import os
 
@@ -27,27 +28,27 @@ class DataHelper:
             s = Scrobble(track=t,date=int(scrobble["date"]["uts"]))
             parsed_scrobbles.append(s)
         self.SCROBBLES_CACHE=parsed_scrobbles
-        print("parsing done")
         self.__scrobbles_parsed=True
 
 
     def get_top_track_for_period(self, start_period: datetime,end_period: datetime):
-        tracks = self.get_tracks_for_period(start_period,end_period)
-        print(len(tracks))
-        return max(tracks,key=tracks.count)
+        start = datetime.now()
+        print(f'time to get all tracks {datetime.now()-start}')
+        print(f'start time of max {datetime.now()}')
+        return self.get_tracks_for_period(start_period,end_period).most_common(1)[0]
 
 
     def get_tracks_for_period(self, start_period: datetime,end_period: datetime):
         self.__get_scrobbles()
-        return list((scrobble.track for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period ))   
+        return Counter((scrobble.track for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period ))   
         
 
 
 if __name__ == "__main__":
     d = DataHelper()
     now = datetime.now()
-    start = now+relativedelta(months=-5)
-    end = start+relativedelta(weeks=5)
-    print(f"start {start} and end {end} ")
+    start = now+relativedelta(months=-10)
+    end = start+relativedelta(weeks=20)
     a = d.get_top_track_for_period(start_period=start,end_period=end)
+    print(f'end time of max {datetime.now()}')
     print(a)
