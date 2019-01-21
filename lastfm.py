@@ -62,7 +62,7 @@ class LastFM:
     def __read_scrobbles_from_cache_file(self):
         try:
             cache_age = datetime.fromtimestamp(os.path.getmtime(self.SCROBBLE_FILE))
-            if cache_age + relativedelta(hours=1) > datetime.now() :
+            if cache_age + relativedelta(hours=24) > datetime.now() :
                 with open(self.SCROBBLE_FILE, 'rb') as input:
                     self.SCROBBLES_CACHE = pickle.load(input)
                 return True

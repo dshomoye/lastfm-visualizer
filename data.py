@@ -40,7 +40,7 @@ class Scrobbleswrangler:
     def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=1) -> list:
         return self.get_tracks_for_period(start_period,end_period).most_common(number_of_tracks)
     
-    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days"):
+    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> Counter:
         valid_date_units = [
             "days",
             "weeks",
@@ -84,6 +84,14 @@ class Scrobbleswrangler:
     def get_tracks_for_period(self, start_period: datetime,end_period: datetime) -> Counter:
         self.__get_scrobbles()
         return Counter((scrobble.track for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period ))   
+    
+    def get_top_artists_for_period(self, start_period: datetime,end_period: datetime, number_of_artists=1) -> list:
+        return list(map(lambda track: (track[0].artist_name,track[1]), 
+                        self.get_tracks_for_period(start_period,end_period).most_common(number_of_artists)))
+    
+    def get_top_albums_for_period(self, start_period: datetime,end_period: datetime, number_of_albums=1) -> list:
+        return list(map(lambda track: (track[0].album_name, track[1]), 
+                        self.get_tracks_for_period(start_period,end_period).most_common(number_of_albums)))
         
 
 
@@ -91,7 +99,11 @@ if __name__ == "__main__":
     d = Scrobbleswrangler()
     now = datetime.now()
     start = now+relativedelta(months=-5)
-    end = start+relativedelta(hours=5)
-    #a = d.get_top_tracks_for_period(start_period=start,end_period=end, number_of_tracks=5)
-    a = d.get_track_count_in_period(start,end,unit="hours")
+    end = start+relativedelta(days=5)
+    a = d.get_top_tracks_for_period(start_period=start,end_period=end, number_of_tracks=2)
+    b = d.get_top_artists_for_period(start_period=start,end_period=end, number_of_artists=2)
+    c = d.get_top_albums_for_period(start_period=start,end_period=end, number_of_albums=2)
+    print(b)
+    print(c)
+    #a = d.get_track_count_in_period(start,end,unit="hours")
     print(a)
