@@ -6,7 +6,7 @@ from collections import Counter
 import os
 
 
-class DataHelper:
+class Scrobbleswrangler:
 
     def __init__(self):
         self.lf = LastFM()
@@ -22,8 +22,16 @@ class DataHelper:
     def __parse_scrobbles(self):
         parsed_scrobbles=[]
         for scrobble in self.SCROBBLES_CACHE:
-            t = Track(title=scrobble["name"],artist=scrobble["artist"]['#text'],album=scrobble["album"]['#text'])
-            s = Scrobble(track=t,date=int(scrobble["date"]["uts"]))
+            t = Track(title=scrobble["name"],artist_name=scrobble["artist"]['#text'],album_name=scrobble["album"]['#text'])
+            if "date" in scrobble:
+                s = Scrobble(track=t,date=int(scrobble["date"]["uts"]))
+            #set currently playing to now
+            else:
+                try:
+                    if scrobble["@attr"]["nowplaying"] == 'true': 
+                        s = Scrobble(track=t,date=int(datetime.now().timestamp()))
+                except:
+                    continue
             parsed_scrobbles.append(s)
         self.SCROBBLES_CACHE=parsed_scrobbles
         self.__scrobbles_parsed=True
@@ -43,7 +51,6 @@ class DataHelper:
         if unit in valid_date_units:
             return self.get_track_count_in_date_period(start_period,end_period,unit)
         elif unit in valid_time_units:
-            print("matched in time unit")
             return self.get_track_count_in_time_period(start_period,end_period,unit)
         else: 
             raise ValueError(f"Unsupported unit type {unit}")
@@ -81,7 +88,7 @@ class DataHelper:
 
 
 if __name__ == "__main__":
-    d = DataHelper()
+    d = Scrobbleswrangler()
     now = datetime.now()
     start = now+relativedelta(months=-5)
     end = start+relativedelta(hours=5)
