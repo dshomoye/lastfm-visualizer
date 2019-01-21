@@ -2,11 +2,21 @@ from datetime import datetime
 from functools import total_ordering
 
 
+class Album:
+    def __init__(self,name: str):
+        self.name = name
+
+class Artist:
+    def __init__(self,name: str):
+        self.name = name
+
 class Track:
-    def __init__(self, title: str, artist: str, album: str = None):
+    def __init__(self, title: str, artist_name: str, album_name: str = None, artist = None, album = None):
         self.title = title
-        self.artist_name = artist
-        self.album_name = album
+        self.artist_name = artist_name
+        self.album_name = album_name
+        self.artist: Artist = artist
+        self.album: Album = album
     
 
     def __eq__(self,other):
@@ -49,5 +59,5 @@ class Scrobble:
 
 
 if __name__ == "__main__":
-    test = Track(artist="Moelogo",title="Ireti")
+    test = Track(artist_name="Moelogo",title="Ireti")
     print(test)
