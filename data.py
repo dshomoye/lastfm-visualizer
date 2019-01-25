@@ -40,9 +40,8 @@ class Scrobbleswrangler:
     def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=1) -> list:
         return self.get_tracks_for_period(start_period,end_period).most_common(number_of_tracks)
     
-    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days", calibrate=True) -> Counter:
+    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> Counter:
         valid_date_units = [
-            "weekdays",
             "days",
             "weeks",
             "months",
@@ -50,18 +49,17 @@ class Scrobbleswrangler:
         ]
         valid_time_units = ["hours"]
         if unit in valid_date_units:
-            return self.get_track_count_in_date_period(start_period,end_period,unit,calibrate)
+            return self.get_track_count_in_date_period(start_period,end_period,unit)
         elif unit in valid_time_units:
             return self.get_track_count_in_time_period(start_period,end_period,unit)
         else: 
             raise ValueError(f"Unsupported unit type {unit}")
     
-    def get_track_count_in_date_period(self,start_period: datetime,end_period: datetime,calibrate: bool, unit="days") -> Counter:
-        if calibrate:
-            start_date = datetime.combine(start_period.date(), datetime.min.time())
-            end_date = datetime.combine(end_period.date(), datetime.min.time())
+    def get_track_count_in_date_period(self,start_period: datetime,end_period: datetime, unit="days") -> Counter:
+        # reset the dates to midnight
+        start_date = datetime.combine(start_period.date(), datetime.min.time())
+        end_date = datetime.combine(end_period.date(), datetime.min.time())
         period_increment = {
-            "weekdays": relativedelta(weeks=1, weekday=0),
             "days": relativedelta(days=1),
             "weeks":relativedelta(weeks=1),
             "months":relativedelta(months=1),
@@ -69,10 +67,9 @@ class Scrobbleswrangler:
         }
         return self.__get_track_count_with_delta(start_date,end_date,period_increment[unit])
     
-    def get_track_count_in_time_period(self,start_period: datetime,end_period: datetime, calibrate: bool, unit="hours") -> Counter:
-        if calibrate: start_period+=relativedelta(minute=0,second=0,microsecond=0)
+    def get_track_count_in_time_period(self,start_period: datetime,end_period: datetime, unit="hours") -> Counter:
         period_increment = {
-            "hours":relativedelta(hours=1,)
+            "hours":relativedelta(hours=1)
         }
         return self.__get_track_count_with_delta(start_period,end_period,period_increment=period_increment[unit])
 
@@ -101,12 +98,12 @@ class Scrobbleswrangler:
 if __name__ == "__main__":
     d = Scrobbleswrangler()
     now = datetime.now()
-    start = now+relativedelta(months=-6)
-    end = start+relativedelta(hours=5)
+    start = now+relativedelta(months=-5)
+    end = start+relativedelta(days=5)
     a = d.get_top_tracks_for_period(start_period=start,end_period=end, number_of_tracks=2)
     b = d.get_top_artists_for_period(start_period=start,end_period=end, number_of_artists=2)
     c = d.get_top_albums_for_period(start_period=start,end_period=end, number_of_albums=2)
     print(b)
     print(c)
-    a = d.get_track_count_in_period(start,end,unit="hours")
+    #a = d.get_track_count_in_period(start,end,unit="hours")
     print(a)
