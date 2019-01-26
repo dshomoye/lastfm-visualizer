@@ -5,6 +5,12 @@ import sys
 import os
 import pickle
 
+class ScrobbleFetchFailed(Exception):
+    pass
+
+class LastFMUserNotFound(Exception):
+    pass
+
 class LastFM:
     lastfm_api = "http://ws.audioscrobbler.com/2.0/"
     key = None
@@ -36,9 +42,9 @@ class LastFM:
         print("downloading...")
         while total_pages > page:
             page+=1
-            t = self.__get_scrobbles_page(page)
-            self.SCROBBLES_CACHE+=t["recenttracks"]["track"]
-            total_pages = int(t["recenttracks"]["@attr"]["totalPages"])
+            scrobbles_in_page = self.__get_scrobbles_page(page)
+            self.SCROBBLES_CACHE+=scrobbles_in_page["recenttracks"]["track"]
+            total_pages = int(scrobbles_in_page["recenttracks"]["@attr"]["totalPages"])
             progress=int(page/total_pages*100)
             print(f"\r {'=' * int(progress/2)}>  {progress}% done",end="")
         print("downloaded")
@@ -53,6 +59,10 @@ class LastFM:
             "page":page
         }
         r = self.__do_request("GET",payload)
+        if r.status_code == 404:
+            raise LastFMUserNotFound("the username is not valid on LastFM")
+        elif r.status_code != 200:
+            raise ScrobbleFetchFailed("An error occured getting srobbles from LastFM")
         return r.json() 
     
     def __write_scrobbles_to_cache_file(self):
