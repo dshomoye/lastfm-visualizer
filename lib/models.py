@@ -54,7 +54,15 @@ class Scrobble:
         return self.date == other.date and self.track == other.track
     
     def __repr__(self):
-        return f"{{Track: {self.track}, Date: {self.date} }}"
+        return f"{{Track: {self.track}, Date: {self.date} }}"\
+    
+    def get_dict(self):
+        return {
+            "Title": self.track.title,
+            "Artist": self.track.artist_name,
+            "Album": self.track.album_name,
+            "Date":  str(self.date)
+        }
     
 
 

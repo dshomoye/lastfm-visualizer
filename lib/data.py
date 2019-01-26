@@ -1,15 +1,15 @@
-from lastfm import LastFM
+from lib.lastfm import LastFM
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta
-from models import Scrobble, Track
+from lib.models import Scrobble, Track
 from collections import Counter
 import os
 
 
 class Scrobbleswrangler:
 
-    def __init__(self):
-        self.lf = LastFM()
+    def __init__(self,lastfm_username="sonofatailor"):
+        self.lf = LastFM(username=lastfm_username)
         self.SCROBBLES_CACHE=None
         self.__scrobbles_parsed = False
     
@@ -82,7 +82,7 @@ class Scrobbleswrangler:
     
     def get_scrobbles_in_period(self, start_period: datetime,end_period: datetime) -> list:
         self.__get_scrobbles()
-        return [ scrobble for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period]
+        return [ scrobble.get_dict() for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period]
 
 
     def get_tracks_and_count_for_period(self, start_period: datetime,end_period: datetime) -> Counter:
