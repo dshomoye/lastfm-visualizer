@@ -26,7 +26,7 @@ class LastFM:
         args:
             (str) username: lastfm username to retrieve all tracks for
         returns:
-            (dict) tracks: dictionary representation of user's scrobbles
+            (list) tracks: dictionary representation of user's scrobbles
         """
         if self.SCROBBLES_CACHE:
             return self.SCROBBLES_CACHE

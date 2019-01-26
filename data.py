@@ -36,10 +36,6 @@ class Scrobbleswrangler:
         self.SCROBBLES_CACHE=parsed_scrobbles
         self.__scrobbles_parsed=True
 
-
-    def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=1) -> list:
-        return self.get_tracks_for_period(start_period,end_period).most_common(number_of_tracks)
-    
     def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> Counter:
         valid_date_units = [
             "days",
@@ -66,6 +62,9 @@ class Scrobbleswrangler:
             "years":relativedelta(years=1)
         }
         return self.__get_track_count_with_delta(start_date,end_date,period_increment[unit])
+
+    def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=1) -> list:
+        return self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_tracks)
     
     def get_track_count_in_time_period(self,start_period: datetime,end_period: datetime, unit="hours") -> Counter:
         period_increment = {
@@ -73,25 +72,30 @@ class Scrobbleswrangler:
         }
         return self.__get_track_count_with_delta(start_period,end_period,period_increment=period_increment[unit])
 
+
     def __get_track_count_with_delta(self,start_period: datetime,end_period: datetime,period_increment: relativedelta):
-        track_count = Counter()
+        track_count: Counter = Counter()
         while end_period >= start_period:
-            track_count[start_period]= sum(self.get_tracks_for_period(start_period,end_period).values())
+            track_count[start_period]= sum(self.get_tracks_and_count_for_period(start_period,end_period).values())
             start_period+=period_increment
         return track_count
+    
+    def get_scrobbles_in_period(self, start_period: datetime,end_period: datetime) -> list:
+        self.__get_scrobbles()
+        return [ scrobble for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period]
 
 
-    def get_tracks_for_period(self, start_period: datetime,end_period: datetime) -> Counter:
+    def get_tracks_and_count_for_period(self, start_period: datetime,end_period: datetime) -> Counter:
         self.__get_scrobbles()
         return Counter((scrobble.track for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period ))   
     
     def get_top_artists_for_period(self, start_period: datetime,end_period: datetime, number_of_artists=1) -> list:
         return list(map(lambda track: (track[0].artist_name,track[1]), 
-                        self.get_tracks_for_period(start_period,end_period).most_common(number_of_artists)))
+                        self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_artists)))
     
     def get_top_albums_for_period(self, start_period: datetime,end_period: datetime, number_of_albums=1) -> list:
         return list(map(lambda track: (track[0].album_name, track[1]), 
-                        self.get_tracks_for_period(start_period,end_period).most_common(number_of_albums)))
+                        self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_albums)))
         
 
 
