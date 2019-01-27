@@ -12,6 +12,16 @@ class Artist:
 
 class Track:
     def __init__(self, title: str, artist_name: str, album_name: str = None, artist = None, album = None):
+        """[summary]
+        
+        Args:
+            title (str): [description]
+            artist_name (str): [description]
+            album_name (str, optional): Defaults to None. [description]
+            artist ([type], optional): Defaults to None. [description]
+            album ([type], optional): Defaults to None. [description]
+        """
+
         self.title = title
         self.artist_name = artist_name
         self.album_name = album_name
@@ -43,6 +53,17 @@ class Track:
 class Scrobble:
 
     def __init__(self,track: Track, date: int):
+        """[summary]
+        
+        Args:
+            track (Track): [description]
+            date (int): [description]
+        
+        Raises:
+            AttributeError: 
+            ValueError: when getting datetime failes
+        """
+
         if not isinstance(track, Track): raise AttributeError("must supply a track object to create scrobble!")
         self.track = track
         try:

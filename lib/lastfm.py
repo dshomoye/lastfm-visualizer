@@ -48,6 +48,19 @@ class LastFM:
         return self.SCROBBLES_CACHE
     
     def __get_scrobbles_page(self,page: int) -> dict:
+        """gets a single page of a request from last fm
+        
+        Args:
+            page (int): [the page number to get]
+        
+        Raises:
+            LastFMUserNotFound: [error]
+            ScrobbleFetchFailed: [error]
+        
+        Returns:
+            dict: [json of request result]
+        """
+
         payload = {
             "method":"user.getRecentTracks",
             "user":self.username,
@@ -66,6 +79,12 @@ class LastFM:
             pickle.dump(self.SCROBBLES_CACHE, output, pickle.HIGHEST_PROTOCOL)
     
     def __read_scrobbles_from_cache_file(self) -> bool:
+        """read scrobble from cache file and save to instance cache dict
+        
+        Returns:
+            bool: if read and save was successful
+        """
+
         try:
             cache_age = datetime.fromtimestamp(os.path.getmtime(self.SCROBBLE_FILE))
             if cache_age + relativedelta(hours=24) > datetime.now() :
@@ -78,6 +97,17 @@ class LastFM:
         
 
     def __do_request(self, http_method, payload):
+        """makes a `request` call using the provided data:
+        
+        Args:
+            http_method (str): 
+            payload (str): the payload to encode as part of request, 
+            format and api_key are auto appended
+        
+        Returns:
+            [type]: [description]
+        """
+
         request_methods = {
             "GET":requests.get,
             "POST":requests.post
