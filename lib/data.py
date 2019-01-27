@@ -1,14 +1,20 @@
 from lib.lastfm import LastFM
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta
-from lib.models import Scrobble, Track
+from lib.models import Scrobble, Track, Artist, Album
 from collections import Counter
+from typing import List, Tuple
+import typing
 import os
 
 
 class Scrobbleswrangler:
 
     def __init__(self,lastfm_username="sonofatailor"):
+        """class for processing scrobble data from lastfm
+            lastfm_username (str, optional): Defaults to "sonofatailor".
+        """
+
         self.lf = LastFM(username=lastfm_username)
         self.SCROBBLES_CACHE=None
         self.__scrobbles_parsed = False
@@ -39,19 +45,19 @@ class Scrobbleswrangler:
         self.SCROBBLES_CACHE=parsed_scrobbles
         self.__scrobbles_parsed=True
 
-    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> Counter:
+    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> typing.Counter[datetime]:
         """gets the number of tracks listened to within a given time range/unit
         
         Args:
-            start_period (datetime): 
-            end_period (datetime): 
-            unit (str, optional): Defaults to "days". 
+            start_period (datetime): -
+            end_period (datetime): -
+            unit (str, optional): Defaults to "days". -
         
         Raises:
-            ValueError:
+            ValueError: -
         
         Returns:
-            Counter: of datetime (in increments of unit provided) vs number of tracks scrobbled
+            typing.Counter[datetime]: -
         """
 
         valid_date_units = [
@@ -68,7 +74,7 @@ class Scrobbleswrangler:
         else: 
             raise ValueError(f"Unsupported unit type {unit}")
     
-    def _get_track_count_in_date_period(self,start_period: datetime,end_period: datetime, unit="days") -> Counter:
+    def _get_track_count_in_date_period(self,start_period: datetime,end_period: datetime, unit="days") -> typing.Counter[datetime]:
         # reset the dates to midnight
         start_date = datetime.combine(start_period.date(), datetime.min.time())
         end_date = datetime.combine(end_period.date(), datetime.min.time())
@@ -80,20 +86,21 @@ class Scrobbleswrangler:
         }
         return self.__get_track_count_with_delta(start_date,end_date,period_increment[unit])
 
-    def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=5) -> list:
+    def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=5) -> List[typing.Dict[str,typing.Any]]:
         """returns most scrobbled tracks within given time period)
         
         Args:
-            start_period (datetime): [description]
-            end_period (datetime): [description]
-            number_of_tracks (int, optional): Defaults to 5. [description]
+            start_period (datetime): -
+            end_period (datetime): -
+            number_of_tracks (int, optional): Defaults to 5. -
         
         Returns:
-            list: [description]
+            List[typing.Dict[str,typing.Any]]: -
         """
 
-        result = self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_tracks)
-        return list(((t[0].dict,t[1]) for (t) in result))
+        return list({"track":t.dict,"played":c} for t,c in 
+            self.get_tracks_and_count_for_period(start_period,end_period)
+            .most_common(number_of_tracks))
     
     def _get_track_count_in_time_period(self,start_period: datetime,end_period: datetime, unit="hours") -> Counter:
         period_increment = {
@@ -102,71 +109,73 @@ class Scrobbleswrangler:
         return self.__get_track_count_with_delta(start_period,end_period,period_increment=period_increment[unit])
 
 
-    def __get_track_count_with_delta(self,start_period: datetime,end_period: datetime, period_increment: relativedelta) -> Counter:
+    def __get_track_count_with_delta(self,start_period: datetime,end_period: datetime, period_increment: relativedelta) -> typing.Counter[datetime]:
         track_count: Counter = Counter()
         while end_period >= start_period:
             track_count[start_period]= sum(self.get_tracks_and_count_for_period(start_period,end_period).values())
             start_period+=period_increment
         return track_count
     
-    def get_scrobbles_in_period(self, start_period: datetime, end_period: datetime) -> list:
+    def get_scrobbles_in_period(self, start_period: datetime, end_period: datetime) -> List[Scrobble]:
         """get the tracks and datetime, "Scrobbles" for given period
         
         Args:
-            start_period (datetime): [description]
-            end_period (datetime): [description]
+            start_period (datetime): -
+            end_period (datetime): -
         
         Returns:
-            list: of Scrobbles with track and datetime info
+            List[Scrobble]: -
         """
 
         self.__get_scrobbles()
         return [ scrobble.dict for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period]
 
 
-    def get_tracks_and_count_for_period(self, start_period: datetime, end_period: datetime) -> Counter:
+    def get_tracks_and_count_for_period(self, start_period: datetime, end_period: datetime) -> typing.Counter[Track]:
         """gets all the tracks withing given period and returns Counter of how many times each were scrobbled
         
         Args:
-            start_period (datetime): [description]
-            end_period (datetime): [description]
+            start_period (datetime): -
+            end_period (datetime): -
         
         Returns:
-            Counter: [description]
+            typing.Counter[Track]: -
         """
 
         self.__get_scrobbles()
         return Counter((scrobble.track for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period ))   
     
-    def get_top_artists_for_period(self, start_period: datetime, end_period: datetime, number_of_artists=5) -> list:
-        """most scrobbled artist within period
+    def get_top_artists_for_period(self, start_period: datetime, end_period: datetime, number_of_artists=5) -> List[typing.Dict[str,typing.Any]]:
+        """[summary]
         
         Args:
-            start_period (datetime): [description]
-            end_period (datetime): [description]
-            number_of_artists (int, optional): Defaults to 5. [description]
+            start_period (datetime): -
+            end_period (datetime): -
+            number_of_artists (int, optional): Defaults to 5. -
         
         Returns:
-            list: [description]
+            List[typing.Dict[str,typing.Any]]: -
         """
 
-        return list(map(lambda track: (track[0].artist_name,track[1]), 
-                        self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_artists)))
+        return list( {"artist": track.artist_name, "played":count} for track, count in self.get_tracks_and_count_for_period(start_period,end_period)
+        .most_common(number_of_artists) )
     
-    def get_top_albums_for_period(self, start_period: datetime, end_period: datetime, number_of_albums=5) -> list:
-        """most scrobbled albums within period
+    def get_top_albums_for_period(self, start_period: datetime, end_period: datetime, number_of_albums=5) -> List[typing.Dict[str,typing.Any]]:
+        """[summary]
         
         Args:
-            start_period (datetime): [description]
-            end_period (datetime): [description]
-            number_of_albums (int, optional): Defaults to 5. [description]
+            start_period (datetime): -
+            end_period (datetime): -
+            number_of_albums (int, optional): Defaults to 5. -
         
         Returns:
-            list: [description]
+            List[typing.Dict[str,typing.Any]]: -
         """
+        return list( {"album": track.album_name, "album artist": track.artist_name, "played":count} for track, count in self.get_tracks_and_count_for_period(start_period,end_period)
+        .most_common(number_of_albums) )
 
-        return list(map(lambda track: (track[0].album_name, track[1]), 
-                        self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_albums)))
+        #return list(map(lambda track: ({"album":track[0].album_name}, track[1]), 
+         #               self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_albums)))
         
 
 

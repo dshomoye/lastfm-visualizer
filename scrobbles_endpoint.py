@@ -7,7 +7,7 @@ from dateutil.parser import parse
 
 scrobbles_api = Blueprint('scrobbles',__name__)
 
-@scrobbles_api.route('/<lf_username>',methods=['GET'])
+@scrobbles_api.route('/<lf_username>', methods=['GET'])
 def get_scrobbles(lf_username):
     req = request.json
     try:
@@ -23,7 +23,7 @@ def get_scrobbles(lf_username):
     except Exception as e:
         return __return_response_for_exception(e)
 
-@scrobbles_api.route('/<lf_username>/top-tracks',methods=['GET'])
+@scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])
 def get_top_tracks(lf_username):
     try:
         req = request.json
@@ -39,6 +39,48 @@ def get_top_tracks(lf_username):
         top_tracks = {
             "date": f'{start} {end}',
             "top tracks": scobble_data.get_top_tracks_for_period(start,end,limit)
+        }
+        return jsonify(top_tracks)
+    except Exception as e:
+        return __return_response_for_exception(e)
+
+@scrobbles_api.route('/<lf_username>/top-albums', methods=['GET'])
+def get_top_albums(lf_username):
+    try:
+        req = request.json
+        start = datetime.now()
+        end = start - relativedelta(days=1)
+        limit=5
+        if 'start' in req:
+            start = parse(req['start'])
+            end = parse(req['end'])
+        if 'limit' in req:
+            limit = req['limit']
+        scobble_data = Scrobbleswrangler(lastfm_username=lf_username)
+        top_tracks = {
+            "date": f'{start} {end}',
+            "top albums": scobble_data.get_top_albums_for_period(start,end,limit)
+        }
+        return jsonify(top_tracks)
+    except Exception as e:
+        return __return_response_for_exception(e)
+
+@scrobbles_api.route('/<lf_username>/top-artists', methods=['GET'])
+def get_top_artist(lf_username):
+    try:
+        req = request.json
+        start = datetime.now()
+        end = start - relativedelta(days=1)
+        limit=5
+        if 'start' in req:
+            start = parse(req['start'])
+            end = parse(req['end'])
+        if 'limit' in req:
+            limit = req['limit']
+        scobble_data = Scrobbleswrangler(lastfm_username=lf_username)
+        top_tracks = {
+            "date": f'{start} {end}',
+            "top albums": scobble_data.get_top_artists_for_period(start,end,limit)
         }
         return jsonify(top_tracks)
     except Exception as e:
