@@ -106,14 +106,17 @@ class Scrobbleswrangler:
         period_increment = {
             "hours":relativedelta(hours=1)
         }
-        return self.__get_track_count_with_delta(start_period,end_period,period_increment=period_increment[unit])
+        return self.__get_track_count_with_delta(start_period,end_period,period_increment=period_increment[unit], scale_to_days=False)
 
 
-    def __get_track_count_with_delta(self,start_period: datetime,end_period: datetime, period_increment: relativedelta) -> typing.Counter[datetime]:
+    def __get_track_count_with_delta(self,start_period: datetime,end_period: datetime, period_increment: relativedelta, scale_to_days: bool=True) -> typing.Counter[datetime]:
         track_count: Counter = Counter()
-        while end_period >= start_period:
-            track_count[start_period]= sum(self.get_tracks_and_count_for_period(start_period,end_period).values())
-            start_period+=period_increment
+        next_period = start_period+period_increment
+        while end_period >= next_period:
+            key = str(start_period.date()) if scale_to_days else str(start_period)
+            track_count[key]= sum(self.get_tracks_and_count_for_period(start_period,next_period).values())
+            start_period=next_period
+            next_period+=period_increment
         return track_count
     
     def get_scrobbles_in_period(self, start_period: datetime, end_period: datetime) -> List[Scrobble]:

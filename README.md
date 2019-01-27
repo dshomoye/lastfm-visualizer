@@ -68,9 +68,9 @@ sample request data:
 
 ```json
 {
-	"start": "2018-5-02 ",
-	"end": "2018-5-03 12:0:0 ",
-	"limit":3
+    "start": "2018-5-02 ",
+    "end": "2018-5-03 12:0:0 ",
+    "limit":3
 }
 
 ```
@@ -163,5 +163,50 @@ sample response:
             "played": 44
         }
     ]
+}
+```
+
+5: Frequency of listening per period
+
+parameters:
+
+- `start` and `end` datetime as other endpoints
+- `scale`: the scale to count listens for (i.e tracks streamed per hour, day, week...)
+    acepted values: *hours, days, weeks, months, years*
+
+sample request:
+
+```json
+{
+    "start":"2018-06-19",
+    "end": "2018-06-21",
+    "scale":"hours"
+}
+```
+
+sample reponse:
+
+```json
+{
+    "end": "2018-06-21 00:00:00",
+    "frequency": {
+        "2018-06-19 00:00:00": 1,
+        "2018-06-19 01:00:00": 0,
+        "2018-06-19 02:00:00": 0,
+        "2018-06-19 03:00:00": 6,
+        "2018-06-19 04:00:00": 0,
+        "2018-06-19 05:00:00": 0,
+        "2018-06-19 06:00:00": 0,
+        "2018-06-19 07:00:00": 0,
+        "2018-06-19 08:00:00": 0,
+        "2018-06-19 09:00:00": 0,
+        "2018-06-19 10:00:00": 0,
+        "2018-06-19 11:00:00": 0,
+        "2018-06-19 12:00:00": 0,
+        "2018-06-19 13:00:00": 10,
+        "2018-06-19 14:00:00": 4,
+        "2018-06-19 15:00:00": 0,
+        ...
+    }
 }
 ```

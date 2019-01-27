@@ -1,6 +1,6 @@
 from flask import Blueprint,request, jsonify, Response, make_response
 from lib.data import Scrobbleswrangler
-from errors import LastFMUserNotFound
+from lib.errors import LastFMUserNotFound
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
@@ -27,14 +27,9 @@ def get_scrobbles(lf_username):
 def get_top_tracks(lf_username):
     try:
         req = request.json
-        start = datetime.now()
-        end = start - relativedelta(days=1)
-        limit=5
-        if 'start' in req:
-            start = parse(req['start'])
-            end = parse(req['end'])
-        if 'limit' in req:
-            limit = req['limit']
+        start = parse(req['start'])
+        end = parse(req['end'])
+        limit = req['limit']
         scobble_data = Scrobbleswrangler(lastfm_username=lf_username)
         top_tracks = {
             "date": f'{start} {end}',
@@ -48,14 +43,9 @@ def get_top_tracks(lf_username):
 def get_top_albums(lf_username):
     try:
         req = request.json
-        start = datetime.now()
-        end = start - relativedelta(days=1)
-        limit=5
-        if 'start' in req:
-            start = parse(req['start'])
-            end = parse(req['end'])
-        if 'limit' in req:
-            limit = req['limit']
+        start = parse(req['start'])
+        end = parse(req['end'])
+        limit = req['limit']
         scobble_data = Scrobbleswrangler(lastfm_username=lf_username)
         top_tracks = {
             "date": f'{start} {end}',
@@ -69,14 +59,9 @@ def get_top_albums(lf_username):
 def get_top_artist(lf_username):
     try:
         req = request.json
-        start = datetime.now()
-        end = start - relativedelta(days=1)
-        limit=5
-        if 'start' in req:
-            start = parse(req['start'])
-            end = parse(req['end'])
-        if 'limit' in req:
-            limit = req['limit']
+        start = parse(req['start'])
+        end = parse(req['end'])
+        limit = req['limit']
         scobble_data = Scrobbleswrangler(lastfm_username=lf_username)
         top_tracks = {
             "date": f'{start} {end}',
@@ -85,6 +70,24 @@ def get_top_artist(lf_username):
         return jsonify(top_tracks)
     except Exception as e:
         return __return_response_for_exception(e)
+    
+@scrobbles_api.route('/<lf_username>/frequency', methods=['GET'])
+def get_listening_frequency(lf_username):
+    try:
+        req = request.json
+        start = parse(req['start'])
+        end = parse(req['end'])
+        scale = req['scale']
+        scobble_data = Scrobbleswrangler(lastfm_username=lf_username)
+        frequency = {
+            "start": str(start),
+            "end": str(end),
+            "frequency": scobble_data.get_track_count_in_period(start_period=start,end_period=end,unit=scale)
+        }
+        return jsonify(frequency)
+    except Exception as e:
+        raise e
+            
 
 def __return_response_for_exception(error: Exception) -> Response:
     if isinstance(error,LastFMUserNotFound):

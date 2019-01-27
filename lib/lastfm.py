@@ -2,7 +2,7 @@ import requests
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from typing import Optional, List, Callable
-from errors import LastFMUserNotFound, ScrobbleFetchFailed
+from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 import sys
 import os
 import pickle
@@ -22,14 +22,12 @@ class LastFM:
         self.SCROBBLE_FILE=f'{username}.scrobbles'
 
     def get_scrobbles(self) -> List[dict]:
+        """get scrobbles dict
+        
+        Returns:
+            List[dict]: dict of scrobbles from lastfm
         """
-        get all tracks for user.
 
-        args:
-            (str) username: lastfm username to retrieve all tracks for
-        returns:
-            (list) tracks: dictionary representation of user's scrobbles
-        """
         if self.SCROBBLES_CACHE:
             return self.SCROBBLES_CACHE
         else:
@@ -68,7 +66,7 @@ class LastFM:
             "page":page
         }
         r = self.__do_request("GET",payload)
-        if r.json()["error"] == 6:
+        if 'error' in r.json() and r.json()["error"] == 6:
             raise LastFMUserNotFound("the username is not found on LastFM")
         elif r.status_code != 200:
             raise ScrobbleFetchFailed(f"An error occured getting srobbles from LastFM, response:{r.text}")
