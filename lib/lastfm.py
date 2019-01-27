@@ -1,15 +1,11 @@
 import requests
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from typing import Optional, List, Callable
+from errors import LastFMUserNotFound, ScrobbleFetchFailed
 import sys
 import os
 import pickle
-
-class ScrobbleFetchFailed(Exception):
-    pass
-
-class LastFMUserNotFound(Exception):
-    pass
 
 class LastFM:
     lastfm_api = "http://ws.audioscrobbler.com/2.0/"
@@ -18,14 +14,14 @@ class LastFM:
     if "LASTFM_API_KEY" in os.environ:
         key = os.environ["LASTFM_API_KEY"]
 
-    def __init__(self,api_key=key, username='sonofatailor'):
+    def __init__(self, api_key: Optional[str]=key, username: str='sonofatailor') -> None:
         self.API_KEY=api_key
         self.username=username
         if not self.API_KEY: raise ValueError("No API KEY passed to LastFM or set in env")
-        self.SCROBBLES_CACHE=[]
+        self.SCROBBLES_CACHE: List[dict]=[]
         self.SCROBBLE_FILE=f'{username}.scrobbles'
 
-    def get_scrobbles(self):
+    def get_scrobbles(self) -> List[dict]:
         """
         get all tracks for user.
 
@@ -51,7 +47,7 @@ class LastFM:
         self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
     
-    def __get_scrobbles_page(self,page):
+    def __get_scrobbles_page(self,page: int) -> dict:
         payload = {
             "method":"user.getRecentTracks",
             "user":self.username,
@@ -59,17 +55,17 @@ class LastFM:
             "page":page
         }
         r = self.__do_request("GET",payload)
-        if r.status_code == 404:
-            raise LastFMUserNotFound("the username is not valid on LastFM")
+        if r.json()["error"] == 6:
+            raise LastFMUserNotFound("the username is not found on LastFM")
         elif r.status_code != 200:
-            raise ScrobbleFetchFailed("An error occured getting srobbles from LastFM")
+            raise ScrobbleFetchFailed(f"An error occured getting srobbles from LastFM, response:{r.text}")
         return r.json() 
     
-    def __write_scrobbles_to_cache_file(self):
+    def __write_scrobbles_to_cache_file(self) -> None:
         with open(self.SCROBBLE_FILE, 'wb') as output:
             pickle.dump(self.SCROBBLES_CACHE, output, pickle.HIGHEST_PROTOCOL)
     
-    def __read_scrobbles_from_cache_file(self):
+    def __read_scrobbles_from_cache_file(self) -> bool:
         try:
             cache_age = datetime.fromtimestamp(os.path.getmtime(self.SCROBBLE_FILE))
             if cache_age + relativedelta(hours=24) > datetime.now() :
@@ -81,16 +77,15 @@ class LastFM:
             return False
         
 
-    def __do_request(self,http_method,payload):
+    def __do_request(self, http_method, payload):
         request_methods = {
             "GET":requests.get,
             "POST":requests.post
         }
         payload["format"]="json"
         payload["api_key"]=self.API_KEY
-        r = request_methods[http_method]
-        request = r(self.lastfm_api,params=payload)
-        return request  
+        r: function = request_methods[http_method]
+        return r(self.lastfm_api,params=payload)
 
 if __name__=="__main__":
     lf = LastFM(username="sonofatailor")
