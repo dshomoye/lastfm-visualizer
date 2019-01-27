@@ -7,9 +7,9 @@ app.debug = True
 app.register_blueprint(scrobbles_api, url_prefix='/scrobbles')
 
 
-@app.route('/')
+@app.route('/ping')
 def home():
-    return 'App home'
+    return 'Hello World!'
 
 
 if __name__ == '__main__':

@@ -1,5 +1,8 @@
 API orchestration to get better insight into LastFM listening history/date bank.
+> Also, the lastFM API is *not* great... 🤨
 Currently only relies on history to provide:
+
+1) Streaming history.
 
 `/scrobbles/:lastfm username`
 - scrobbles within a provided date range.

@@ -17,6 +17,11 @@ class Track:
         self.album_name = album_name
         self.artist: Artist = artist
         self.album: Album = album
+        self.dict = {
+            "title": self.title,
+            "artist": self.artist_name,
+            "album": self.album_name
+        }
     
 
     def __eq__(self,other):
@@ -44,6 +49,10 @@ class Scrobble:
             self.date = datetime.fromtimestamp(date)
         except ValueError:
             raise ValueError(f"failed to create Scrobble object")
+        self.dict = {
+            "track": self.track.dict,
+            "Date":  str(self.date)
+        }
 
     def __lt__(self,other):
         if not isinstance(other, Scrobble): return NotImplemented
@@ -54,16 +63,7 @@ class Scrobble:
         return self.date == other.date and self.track == other.track
     
     def __repr__(self):
-        return f"{{Track: {self.track}, Date: {self.date} }}"\
-    
-    def get_dict(self):
-        return {
-            "Title": self.track.title,
-            "Artist": self.track.artist_name,
-            "Album": self.track.album_name,
-            "Date":  str(self.date)
-        }
-    
+        return f"{{Track: {self.track}, Date: {self.date} }}"
 
 
 if __name__ == "__main__":
