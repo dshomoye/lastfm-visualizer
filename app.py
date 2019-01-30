@@ -1,5 +1,5 @@
 from flask import Flask
-from scrobbles_endpoint import scrobbles_api
+from blueprints.scrobbles import scrobbles_api
 
 app = Flask(__name__)
 
