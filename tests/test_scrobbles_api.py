@@ -43,20 +43,17 @@ def test_frequency_endpoint_returns_right_frequency(client):
     )
     data = {
         "start":"2019-01-23",
-        "end": "2019-01-28",
+        "end": "2019-01-25",
         "scale":"days"
     }
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/frequency',data=json.dumps(data),content_type='application/json')
     expected_result = {
-        'end': '2019-01-28 00:00:00', 
-        'frequency': {
-            '2019-01-23': 57, 
-            '2019-01-24': 25, 
-            '2019-01-25': 3, 
-            '2019-01-26': 34, 
-            '2019-01-27': 40
-        }, 
-        'start': '2019-01-23 00:00:00'
+        "end": "2019-01-25 00:00:00",
+        "frequency": {
+            "2019-01-23": 156,
+            "2019-01-24": 25
+        },
+        "start": "2019-01-23 00:00:00"
     }
     print(r.json)
     assert r.status_code == 200
@@ -72,30 +69,41 @@ def test_top_tracks_endpoint_returns_right_result(client):
     )
     data = {
 	"start":"2019-01-23",
-	"end": "2019-01-28",
+	"end": "2019-01-25",
 	"limit":3
     }
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-tracks',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
-        'date': '2019-01-23 00:00:00 2019-01-28 00:00:00', 
-        'top tracks': [
-        {
-            'played': 7, 'track': {
-                'album': 'No Budget (feat. Rich The Kid)', 'artist': 'Kid Ink', 'title': 'No Budget (feat. Rich The Kid)'
+        "date": "2019-01-23 00:00:00 2019-01-25 00:00:00",
+        "top tracks": [
+            {
+                "played": 68,
+                "track": {
+                    "album": "The Wave",
+                    "artist": "R3hab",
+                    "title": "Rumors (With Sofia Carson)"
+                }
+            },
+            {
+                "played": 9,
+                "track": {
+                    "album": "Rumors (With Sofia Carson)",
+                    "artist": "R3hab",
+                    "title": "Rumors (With Sofia Carson)"
+                }
+            },
+            {
+                "played": 6,
+                "track": {
+                    "album": "No Budget (feat. Rich The Kid)",
+                    "artist": "Kid Ink",
+                    "title": "No Budget (feat. Rich The Kid)"
+                }
             }
-        },
-        {'played': 7, 'track': {
-            'album': 'Rumors (With Sofia Carson)', 'artist': 'R3hab', 'title': 'Rumors (With Sofia Carson)'
-            }
-        },
-        {
-            'played': 3, 'track': {
-                'album': 'Meant To Love You', 'artist': 'Jauz', 'title': 'Meant To Love You'
-            }
-        }
         ]
     }
+    print(r.json)
     assert r.json == expected_result
 
 
