@@ -11,6 +11,7 @@ jobs:
       - image: circleci/python:3.7.0
         environment:
           TESTING: True
+          TZ: "America/New_York"
       
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
