@@ -1,4 +1,3 @@
 venv
 coverage_html_report
 .coverage*
-*.ini
