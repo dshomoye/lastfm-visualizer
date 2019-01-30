@@ -1,6 +1,7 @@
 import requests
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from dateutil.tz import tzutc
 from typing import Optional, List, Callable
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 import sys
@@ -18,7 +19,7 @@ class LastFM:
         self.API_KEY=api_key
         self.username=username
         if not self.API_KEY: raise ValueError("No API KEY passed to LastFM or set in env")
-        self.SCROBBLES_CACHE: List[dict]=[]
+        self.SCROBBLES_CACHE: dict={}
         self.SCROBBLE_FILE=f'{username}.scrobbles'
 
     def get_scrobbles(self) -> List[dict]:
@@ -28,24 +29,46 @@ class LastFM:
             List[dict]: dict of scrobbles from lastfm
         """
 
-        if self.SCROBBLES_CACHE:
-            return self.SCROBBLES_CACHE
+        if self._new_lf_user():
+            self.SCROBBLES_CACHE['scrobbles'] = []
+            return self._get_scrobbles_from_lf()
         else:
-            if self.__read_scrobbles_from_cache_file(): return self.SCROBBLES_CACHE
+            print(datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated']))
+            print(f"now: {datetime.now()}")
+            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated'])+relativedelta(minutes=1) >= datetime.now():
+                return self.SCROBBLES_CACHE['scrobbles']
+            else:
+                payload = {'from':self.SCROBBLES_CACHE['last updated']}
+                payload['to'] = int(datetime.now().timestamp())
+                print(payload)
+                return self._get_scrobbles_from_lf(payload=payload)    
+    
+    def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
         page, total_pages = 0,1
-        print("downloading...")
+        print(f"downloading scrobbles for {self.username}... started at {datetime.now()}")
         while total_pages > page:
             page+=1
-            scrobbles_in_page = self.__get_scrobbles_page(page)
-            self.SCROBBLES_CACHE+=scrobbles_in_page["recenttracks"]["track"]
+            scrobbles_in_page = self.__get_scrobbles_page(page=page,payload=payload)
+            self.SCROBBLES_CACHE['scrobbles']+=scrobbles_in_page["recenttracks"]["track"]
             total_pages = int(scrobbles_in_page["recenttracks"]["@attr"]["totalPages"])
-            progress=int(page/total_pages*100)
-            print(f"\r {'=' * int(progress/2)}>  {progress}% done",end="")
-        print("downloaded")
+            progress=int(page/total_pages*100) if total_pages else 0
+            print(f"\r {'=' * int(progress/2)}>  {progress}%",end="")
+        print(f"downloaded, ended at {datetime.now()}")
+        self.SCROBBLES_CACHE['last updated']=int(datetime.now().timestamp())
         self.__write_scrobbles_to_cache_file()
-        return self.SCROBBLES_CACHE
+        return self.SCROBBLES_CACHE['scrobbles']
+
+
+    def _new_lf_user(self) -> bool:
+        """check if user scrobbles have been saved already
+        
+        Returns:
+            bool:
+        """
+
+        return not self.__read_scrobbles_from_cache_file()
     
-    def __get_scrobbles_page(self,page: int) -> dict:
+    def __get_scrobbles_page(self,page: int, payload: dict = {}) -> dict:
         """gets a single page of a request from last fm
         
         Args:
@@ -58,14 +81,12 @@ class LastFM:
         Returns:
             dict: [json of request result]
         """
-
-        payload = {
-            "method":"user.getRecentTracks",
-            "user":self.username,
-            "limit":200,
-            "page":page
-        }
-        r = self.__do_request("GET",payload)
+        payload['method'] = "user.getRecentTracks"
+        payload['user'] = self.username
+        payload['limit'] = 200
+        payload['page'] = page
+        r: requests.request = self.__do_request("GET",payload)
+        print(r.url)
         if 'error' in r.json() and r.json()["error"] == 6:
             raise LastFMUserNotFound("the username is not found on LastFM")
         elif r.status_code != 200:
@@ -84,12 +105,9 @@ class LastFM:
         """
 
         try:
-            cache_age = datetime.fromtimestamp(os.path.getmtime(self.SCROBBLE_FILE))
-            if cache_age + relativedelta(hours=24) > datetime.now() :
-                with open(self.SCROBBLE_FILE, 'rb') as input:
-                    self.SCROBBLES_CACHE = pickle.load(input)
-                return True
-            else: return False
+            with open(self.SCROBBLE_FILE, 'rb') as input:
+                self.SCROBBLES_CACHE = pickle.load(input)
+            return True
         except:
             return False
         
