@@ -1,6 +1,6 @@
 from flask import Blueprint,request, jsonify, Response, make_response
 from lib.data import Scrobbleswrangler
-from lib.errors import LastFMUserNotFound
+from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
@@ -96,9 +96,12 @@ def __return_response_for_exception(error: Exception) -> Response:
     if isinstance(error,LastFMUserNotFound):
         user_not_found = {"errors": [str(error)]}
         return make_response(jsonify(user_not_found),404)
-    if isinstance(error,ValueError) or isinstance(error,KeyError):
+    elif isinstance(error,ValueError) or isinstance(error,KeyError):
         bad_date_request = {"errors": ["missing attribute or bad date format" ]}
         return make_response(jsonify(bad_date_request),422)
+    elif isinstance(error,ScrobbleFetchFailed):
+        e = {"errors":["unable to get scrobbles from lastFM",f"{error}"]}
+        return make_response(jsonify(e),500)
     else:
         fetch_failed = {"errors": [str(error)]}
         return make_response(jsonify(fetch_failed), 400) 
