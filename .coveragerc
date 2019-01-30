@@ -2,4 +2,7 @@
 omit = tests/*, venv/*
 
 [xml]
-output = test_reports/results.xml
+output = test_reports/xml_reports/results.xml
+
+[html]
+directory = test_reports/html_reports

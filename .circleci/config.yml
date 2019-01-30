@@ -54,7 +54,7 @@ jobs:
             pwd
             ls
             env
-            python -m pytest tests/test_scrobbles_api.py -s --cov=. --cov-report xml
+            python -m pytest tests/test_scrobbles_api.py -s --cov=. --cov-report xml --cov-report html
 
       - store_artifacts:
           path: test_reports
