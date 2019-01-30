@@ -12,13 +12,13 @@ class LastFM:
     lastfm_api = "http://ws.audioscrobbler.com/2.0/"
     key = None
 
-    if "LASTFM_API_KEY" in os.environ:
-        key = os.environ["LASTFM_API_KEY"]
+    key = os.getenv('LASTFM_API_KEY')
+    testing = os.getenv('TESTING')
 
     def __init__(self, api_key: Optional[str]=key, username: str='sonofatailor') -> None:
         self.API_KEY=api_key
         self.username=username
-        if not self.API_KEY: raise ValueError("No API KEY passed to LastFM or set in env")
+        if not self.API_KEY and not self.testing: raise ValueError("No API KEY passed to LastFM or set in env")
         self.SCROBBLES_CACHE: dict={}
         self.SCROBBLE_FILE=f'{username}.scrobbles'
 

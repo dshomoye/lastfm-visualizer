@@ -86,7 +86,7 @@ class Scrobbleswrangler:
         }
         return self.__get_track_count_with_delta(start_date,end_date,period_increment[unit])
 
-    def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks=5) -> List[typing.Dict[str,typing.Any]]:
+    def get_top_tracks_for_period(self, start_period: datetime,end_period: datetime, number_of_tracks: int=5) -> List[typing.Dict[str,typing.Any]]:
         """returns most scrobbled tracks within given time period)
         
         Args:

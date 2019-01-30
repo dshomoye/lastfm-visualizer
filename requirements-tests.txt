@@ -1,0 +1,7 @@
+requests
+python-dateutil
+Flask
+pytest
+responses
+mypy
+pytest-cov

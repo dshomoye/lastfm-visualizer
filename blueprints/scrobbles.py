@@ -36,7 +36,7 @@ def get_top_tracks(lf_username):
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
             "date": f'{start} {end}',
-            "top tracks": scobble_data.get_top_tracks_for_period(start,end,limit)
+            "top tracks": scobble_data.get_top_tracks_for_period(start,end,int(limit))
         }
         return jsonify(top_tracks)
     except Exception as e:
