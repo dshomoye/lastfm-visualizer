@@ -57,6 +57,10 @@ jobs:
             python -m pytest tests/test_scrobbles_api.py -s --cov=. --cov-report xml
 
       - store_artifacts:
-          path: test-reports
+          path: test_reports
           destination: test_reports
+      
+      - store_test_results:
+          path: test_reports
+
           
