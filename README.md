@@ -1,6 +1,6 @@
 # LastFM API wrapper
 
-[![CircleCI](https://circleci.com/gh/dshomoye/lastfm-visualizer/tree/dev.svg?style=svg)](https://circleci.com/gh/dshomoye/lastfm-visualizer/tree/dev) 
+[![CircleCI](https://circleci.com/gh/dshomoye/lastfm-visualizer/tree/dev.svg?style=svg&circle-token=bfe9a145894b73da27fbe342d038da72fe6c9e79)]
 
 API orchestration to get better insight into LastFM listening history/date bank.
 
