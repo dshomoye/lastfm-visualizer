@@ -31,17 +31,14 @@ class LastFM:
 
         if self._new_lf_user():
             self.SCROBBLES_CACHE['scrobbles'] = []
-            return self._get_scrobbles_from_lf()
+            return self._get_scrobbles_from_lf()['scrobbles']
         else:
-            print(datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated']))
-            print(f"now: {datetime.now()}")
             if datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated'])+relativedelta(minutes=1) >= datetime.now():
                 return self.SCROBBLES_CACHE['scrobbles']
             else:
                 payload = {'from':self.SCROBBLES_CACHE['last updated']}
                 payload['to'] = int(datetime.now().timestamp())
-                print(payload)
-                return self._get_scrobbles_from_lf(payload=payload)    
+                return self._get_scrobbles_from_lf(payload=payload)['scrobbles']    
     
     def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
         page, total_pages = 0,1
@@ -56,7 +53,7 @@ class LastFM:
         print(f"downloaded, ended at {datetime.now()}")
         self.SCROBBLES_CACHE['last updated']=int(datetime.now().timestamp())
         self.__write_scrobbles_to_cache_file()
-        return self.SCROBBLES_CACHE['scrobbles']
+        return self.SCROBBLES_CACHE
 
 
     def _new_lf_user(self) -> bool:
@@ -85,8 +82,7 @@ class LastFM:
         payload['user'] = self.username
         payload['limit'] = 200
         payload['page'] = page
-        r: requests.request = self.__do_request("GET",payload)
-        print(r.url)
+        r = self.__do_request("GET",payload)
         if 'error' in r.json() and r.json()["error"] == 6:
             raise LastFMUserNotFound("the username is not found on LastFM")
         elif r.status_code != 200:
