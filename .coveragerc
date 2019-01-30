@@ -1,5 +1,5 @@
 [run]
 omit = tests/*, venv/*
 
-[html]
+[xml]
 directory = test_reports
