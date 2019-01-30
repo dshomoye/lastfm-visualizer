@@ -50,6 +50,8 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
+            pwd
+            env
             python -m pytest --cov=. --cov-report html
 
       - store_artifacts:
