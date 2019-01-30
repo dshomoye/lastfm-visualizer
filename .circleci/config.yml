@@ -51,6 +51,7 @@ jobs:
           command: |
             . venv/bin/activate
             pwd
+            ls
             env
             python -m pytest --cov=. --cov-report html
 
