@@ -58,6 +58,7 @@ def test_frequency_endpoint_returns_right_frequency(client):
         }, 
         'start': '2019-01-23 00:00:00'
     }
+    print(r.json)
     assert r.status_code == 200
     assert r.json == expected_result
 
@@ -75,7 +76,6 @@ def test_top_tracks_endpoint_returns_right_result(client):
 	"limit":3
     }
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-tracks',data=json.dumps(data),content_type='application/json')
-    print(r.json)
     assert r.status_code == 200
     expected_result = {
         'date': '2019-01-23 00:00:00 2019-01-28 00:00:00', 
