@@ -4,6 +4,7 @@ from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
+from dateutil.tz import UTC
 import typing
 
 scrobbles_api = Blueprint('scrobbles',__name__)
@@ -14,8 +15,10 @@ __scrobblewranglers: typing.Dict[str,Scrobbleswrangler] = {}
 def get_scrobbles(lf_username):
     req = request.json
     try:
-        start = parse(req['start'])
-        end = parse(req['end'])
+        start = parse(req['start']).replace(tzinfo=UTC)
+        end = parse(req['end']).replace(tzinfo=UTC)
+        #end = end.replace(tzinfo=UTC)
+        #start = start.replace(tzinfo=UTC)
         scobble_data = __get_scrobble_data(lf_username)
         track_scrobbles = {
             "date": f'{start} {end}',
@@ -24,19 +27,20 @@ def get_scrobbles(lf_username):
         }
         return jsonify(track_scrobbles)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])
 def get_top_tracks(lf_username):
     try:
         req = request.json
-        start = parse(req['start'])
-        end = parse(req['end'])
+        start = parse(req['start']).replace(tzinfo=UTC)
+        end = parse(req['end']).replace(tzinfo=UTC)
         limit = req['limit']
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
             "date": f'{start} {end}',
-            "top tracks": scobble_data.get_top_tracks_for_period(start,end,limit)
+            "top tracks": scobble_data.get_top_tracks_for_period(start,end,int(limit))
         }
         return jsonify(top_tracks)
     except Exception as e:
@@ -46,8 +50,8 @@ def get_top_tracks(lf_username):
 def get_top_albums(lf_username):
     try:
         req = request.json
-        start = parse(req['start'])
-        end = parse(req['end'])
+        start = parse(req['start']).replace(tzinfo=UTC)
+        end = parse(req['end']).replace(tzinfo=UTC)
         limit = req['limit']
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
@@ -62,13 +66,13 @@ def get_top_albums(lf_username):
 def get_top_artist(lf_username):
     try:
         req = request.json
-        start = parse(req['start'])
-        end = parse(req['end'])
+        start = parse(req['start']).replace(tzinfo=UTC)
+        end = parse(req['end']).replace(tzinfo=UTC)
         limit = req['limit']
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
             "date": f'{start} {end}',
-            "top albums": scobble_data.get_top_artists_for_period(start,end,limit)
+            "top artists": scobble_data.get_top_artists_for_period(start,end,limit)
         }
         return jsonify(top_tracks)
     except Exception as e:
@@ -78,8 +82,8 @@ def get_top_artist(lf_username):
 def get_listening_frequency(lf_username):
     try:
         req = request.json
-        start = parse(req['start'])
-        end = parse(req['end'])
+        start = parse(req['start']).replace(tzinfo=UTC)
+        end = parse(req['end']).replace(tzinfo=UTC)
         scale = req['scale']
         scobble_data = __get_scrobble_data(lf_username)
         frequency = {
