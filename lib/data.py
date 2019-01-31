@@ -159,9 +159,12 @@ class Scrobbleswrangler:
         Returns:
             List[typing.Dict[str,typing.Any]]: -
         """
-
-        return list( {"artist": track.artist_name, "played":count} for track, count in self.get_tracks_and_count_for_period(start_period,end_period)
-        .most_common(number_of_artists) )
+        result: dict = {}
+        for track, count in self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_artists):
+            result.setdefault(track.artist_name,0)
+            result[track.artist_name]+=count
+        print(result)
+        return list( {"artist": artist, "played":count} for artist, count in result.items())
     
     def get_top_albums_for_period(self, start_period: datetime, end_period: datetime, number_of_albums=5) -> List[typing.Dict[str,typing.Any]]:
         """[summary]
@@ -174,12 +177,14 @@ class Scrobbleswrangler:
         Returns:
             List[typing.Dict[str,typing.Any]]: -
         """
-        return list( {"album": track.album_name, "album artist": track.artist_name, "played":count} for track, count in self.get_tracks_and_count_for_period(start_period,end_period)
-        .most_common(number_of_albums) )
-
-        #return list(map(lambda track: ({"album":track[0].album_name}, track[1]), 
-         #               self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_albums)))
-        
+        result: dict = {}
+        for track, count in self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_albums):
+            name: str = track.album_name
+            album = Album(name=name, artist=Artist(name=track.artist_name))
+            result.setdefault(album,0)
+            result[album]+=count
+        return list( {"album artist": album.artist.name, "album": album.name, "played": count} for album, count in result.items() )
+   
 
 
 if __name__ == "__main__":

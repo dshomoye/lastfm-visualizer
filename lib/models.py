@@ -1,17 +1,24 @@
 from datetime import datetime
 from functools import total_ordering
 
-
-class Album:
-    def __init__(self,name: str):
-        self.name = name
-
 class Artist:
     def __init__(self,name: str):
         self.name = name
 
+class Album:
+    def __init__(self,name: str, artist: Artist):
+        self.artist = artist
+        self.name = name
+    
+    def __repr__(self):
+        return f'{{Album: {self.name}, Artist: {self.artist.name} }}'
+
+    def __hash__(self):
+        return hash(repr(self))
+
+
 class Track:
-    def __init__(self, title: str, artist_name: str, album_name: str = None, artist = None, album = None):
+    def __init__(self, title: str, artist_name: str, album_name: str, artist = None, album = None):
         """[summary]
         
         Args:
@@ -88,5 +95,5 @@ class Scrobble:
 
 
 if __name__ == "__main__":
-    test = Track(artist_name="Moelogo",title="Ireti")
+    test = Track(artist_name="Moelogo",title="Ireti", album_name="Ireti")
     print(test)

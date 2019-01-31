@@ -68,7 +68,7 @@ def get_top_artist(lf_username):
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
             "date": f'{start} {end}',
-            "top albums": scobble_data.get_top_artists_for_period(start,end,limit)
+            "top artists": scobble_data.get_top_artists_for_period(start,end,limit)
         }
         return jsonify(top_tracks)
     except Exception as e:

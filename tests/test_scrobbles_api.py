@@ -13,7 +13,6 @@ DUMMY_LF_DATA_PATH = 'tests/data.json'
 
 @pytest.fixture
 def client():
-    print(type(app))
     app.config['TESTING'] = True
     os.environ['TESTING'] = "True"
     client = app.test_client()
@@ -55,7 +54,6 @@ def test_frequency_endpoint_returns_right_frequency(client):
         },
         "start": "2019-01-23 00:00:00"
     }
-    print(r.json)
     assert r.status_code == 200
     assert r.json == expected_result
 
@@ -103,8 +101,77 @@ def test_top_tracks_endpoint_returns_right_result(client):
             }
         ]
     }
+    assert r.json == expected_result
+
+
+@responses.activate
+def test_top_albums_endpoint_returns_right_result(client):
+    lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
+    responses.add_callback(
+        responses.GET, lf_endpoint,
+        callback=standard_data_request_callback,
+        content_type='application/json',
+    )
+    data = {
+	"start":"2019-01-23",
+	"end": "2019-01-25",
+	"limit":3
+    }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-albums',data=json.dumps(data),content_type='application/json')
+    assert r.status_code == 200
+    expected_result = {
+        "date": "2019-01-23 00:00:00 2019-01-25 00:00:00",
+        "top albums": [
+            {
+                "album": "The Wave",
+                "album artist": "R3hab",
+                "played": 68
+            },
+            {
+                "album": "Rumors (With Sofia Carson)",
+                "album artist": "R3hab",
+                "played": 9
+            },
+            {
+                "album": "No Budget (feat. Rich The Kid)",
+                "album artist": "Kid Ink",
+                "played": 6
+            }
+        ]
+    }
+    assert r.json == expected_result
+
+@responses.activate
+def test_top_artists_endpoint_returns_right_result(client):
+    lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
+    responses.add_callback(
+        responses.GET, lf_endpoint,
+        callback=standard_data_request_callback,
+        content_type='application/json',
+    )
+    data = {
+	"start":"2019-01-23",
+	"end": "2019-01-25",
+	"limit":3
+    }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-artists',data=json.dumps(data),content_type='application/json')
+    assert r.status_code == 200
+    expected_result = {
+        "date": "2019-01-23 00:00:00 2019-01-25 00:00:00",
+        "top artists": [
+            {
+                "artist": "R3hab",
+                "played": 77
+            },
+            {
+                "artist": "Kid Ink",
+                "played": 6
+            }
+        ]
+    }
     print(r.json)
     assert r.json == expected_result
+
 
 
 
