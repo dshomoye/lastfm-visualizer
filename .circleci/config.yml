@@ -42,18 +42,10 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements-tests.txt" }}
         
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
       - run:
           name: run tests
           command: |
             . venv/bin/activate
-            pwd
-            ls
-            env
             python -m pytest tests/test_scrobbles_api.py -s --junitxml=test_results/app/results.xml --cov=. --cov-report html
 
       - store_artifacts:
