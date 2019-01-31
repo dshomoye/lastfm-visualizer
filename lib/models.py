@@ -1,5 +1,6 @@
 from datetime import datetime
 from functools import total_ordering
+from dateutil.tz import UTC
 
 class Artist:
     def __init__(self,name: str):
@@ -74,7 +75,7 @@ class Scrobble:
         if not isinstance(track, Track): raise AttributeError("must supply a track object to create scrobble!")
         self.track = track
         try:
-            self.date = datetime.fromtimestamp(date)
+            self.date = datetime.fromtimestamp(date,tz=UTC)
         except ValueError:
             raise ValueError(f"failed to create Scrobble object")
         self.dict = {

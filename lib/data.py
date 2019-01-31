@@ -1,6 +1,7 @@
 from lib.lastfm import LastFM
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta
+from dateutil.tz import UTC
 from lib.models import Scrobble, Track, Artist, Album
 from collections import Counter
 from typing import List, Tuple
@@ -76,8 +77,8 @@ class Scrobbleswrangler:
     
     def _get_track_count_in_date_period(self,start_period: datetime,end_period: datetime, unit="days") -> typing.Counter[datetime]:
         # reset the dates to midnight
-        start_date = datetime.combine(start_period.date(), datetime.min.time())
-        end_date = datetime.combine(end_period.date(), datetime.min.time())
+        start_date = datetime.combine(start_period.date(), datetime.min.time()).replace(tzinfo=UTC)
+        end_date = datetime.combine(end_period.date(), datetime.min.time()).replace(tzinfo=UTC)
         period_increment = {
             "days": relativedelta(days=1),
             "weeks":relativedelta(weeks=1),
@@ -163,7 +164,6 @@ class Scrobbleswrangler:
         for track, count in self.get_tracks_and_count_for_period(start_period,end_period).most_common(number_of_artists):
             result.setdefault(track.artist_name,0)
             result[track.artist_name]+=count
-        print(result)
         return list( {"artist": artist, "played":count} for artist, count in result.items())
     
     def get_top_albums_for_period(self, start_period: datetime, end_period: datetime, number_of_albums=5) -> List[typing.Dict[str,typing.Any]]:

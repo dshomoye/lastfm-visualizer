@@ -21,6 +21,7 @@ def client():
     if os.path.exists(f'{LF_TEST_USERNAME}.scrobbles'):
         os.remove(f'{LF_TEST_USERNAME}.scrobbles')
 
+
 def standard_data_request_callback(request):
     with open(DUMMY_LF_DATA_PATH) as f:
         resp_body = json.load(f)
@@ -31,6 +32,7 @@ def standard_data_request_callback(request):
 def test_ping_endpoint(client):
     r = client.get('/ping')
     assert b'Hello World!' in r.data
+
 
 @responses.activate
 def test_frequency_endpoint_returns_right_frequency(client):
@@ -47,15 +49,16 @@ def test_frequency_endpoint_returns_right_frequency(client):
     }
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/frequency',data=json.dumps(data),content_type='application/json')
     expected_result = {
-        "end": "2019-01-25 00:00:00",
+        "end": "2019-01-25 00:00:00+00:00",
         "frequency": {
-            "2019-01-23": 156,
-            "2019-01-24": 25
+            "2019-01-23": 151,
+            "2019-01-24": 30
         },
-        "start": "2019-01-23 00:00:00"
+        "start": "2019-01-23 00:00:00+00:00"
     }
     assert r.status_code == 200
     assert r.json == expected_result
+
 
 @responses.activate
 def test_top_tracks_endpoint_returns_right_result(client):
@@ -73,7 +76,7 @@ def test_top_tracks_endpoint_returns_right_result(client):
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-tracks',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
-        "date": "2019-01-23 00:00:00 2019-01-25 00:00:00",
+        "date": "2019-01-23 00:00:00+00:00 2019-01-25 00:00:00+00:00",
         "top tracks": [
             {
                 "played": 68,
@@ -120,7 +123,7 @@ def test_top_albums_endpoint_returns_right_result(client):
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-albums',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
-        "date": "2019-01-23 00:00:00 2019-01-25 00:00:00",
+        "date": "2019-01-23 00:00:00+00:00 2019-01-25 00:00:00+00:00",
         "top albums": [
             {
                 "album": "The Wave",
@@ -157,7 +160,7 @@ def test_top_artists_endpoint_returns_right_result(client):
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-artists',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
-        "date": "2019-01-23 00:00:00 2019-01-25 00:00:00",
+        "date": "2019-01-23 00:00:00+00:00 2019-01-25 00:00:00+00:00",
         "top artists": [
             {
                 "artist": "R3hab",
@@ -169,9 +172,57 @@ def test_top_artists_endpoint_returns_right_result(client):
             }
         ]
     }
-    print(r.json)
     assert r.json == expected_result
 
-
-
-
+@responses.activate
+def test_scrobbles_endpoint_returns_scrobbles(client):
+    lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
+    responses.add_callback(
+        responses.GET, lf_endpoint,
+        callback=standard_data_request_callback,
+        content_type='application/json',
+    )
+    data = {
+        "start":"2019-01-23 00-00-00",
+        "end": "2019-01-23 12-00-00"
+    }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}',data=json.dumps(data),content_type='application/json')
+    assert r.status_code == 200
+    expected_result = {
+        "date": "2019-01-23 00:00:00+00:00 2019-01-23 12:00:00+00:00",
+        "scrobbles": [
+            {
+                "Date": "2019-01-23 11:57:47+00:00",
+                "track": {
+                    "album": "The Last Rocket",
+                    "artist": "Takeoff",
+                    "title": "She Gon Wink"
+                }
+            },
+            {
+                "Date": "2019-01-23 11:54:49+00:00",
+                "track": {
+                    "album": "Splashin",
+                    "artist": "Rich the Kid",
+                    "title": "Splashin"
+                }
+            },
+            {
+                "Date": "2019-01-23 11:51:22+00:00",
+                "track": {
+                    "album": "Feelin Like",
+                    "artist": "Flipp Dinero",
+                    "title": "Feelin Like"
+                }
+            },
+            {
+                "Date": "2019-01-23 11:48:50+00:00",
+                "track": {
+                    "album": "The Wave",
+                    "artist": "R3hab",
+                    "title": "Rumors (With Sofia Carson)"
+                }
+            }
+        ]
+    }
+    assert r.json == expected_result
