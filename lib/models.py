@@ -98,3 +98,4 @@ class Scrobble:
 if __name__ == "__main__":
     test = Track(artist_name="Moelogo",title="Ireti", album_name="Ireti")
     print(test)
+    

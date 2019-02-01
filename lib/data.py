@@ -18,33 +18,11 @@ class Scrobbleswrangler:
 
         self.lf = LastFM(username=lastfm_username)
         self.SCROBBLES_CACHE=None
-        self.__scrobbles_parsed = False
+        #self.__scrobbles_parsed = False
     
     def __get_scrobbles(self):
         if not self.SCROBBLES_CACHE:
             self.SCROBBLES_CACHE = self.lf.get_scrobbles()
-        if not self.__scrobbles_parsed:
-            self.__parse_scrobbles()
-
-    def __parse_scrobbles(self):
-        """parses the returned dict/json from lastfm into required format
-        """
-
-        parsed_scrobbles=[]
-        for scrobble in self.SCROBBLES_CACHE:
-            t = Track(title=scrobble["name"],artist_name=scrobble["artist"]['#text'],album_name=scrobble["album"]['#text'])
-            if "date" in scrobble:
-                s = Scrobble(track=t,date=int(scrobble["date"]["uts"]))
-            #set currently playing to now
-            else:
-                try:
-                    if scrobble["@attr"]["nowplaying"] == 'true': 
-                        s = Scrobble(track=t,date=int(datetime.now().timestamp()))
-                except:
-                    continue
-            parsed_scrobbles.append(s)
-        self.SCROBBLES_CACHE=parsed_scrobbles
-        self.__scrobbles_parsed=True
 
     def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> typing.Counter[datetime]:
         """gets the number of tracks listened to within a given time range/unit

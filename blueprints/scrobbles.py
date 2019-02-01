@@ -27,7 +27,6 @@ def get_scrobbles(lf_username):
         }
         return jsonify(track_scrobbles)
     except Exception as e:
-        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])

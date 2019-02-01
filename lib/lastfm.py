@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from dateutil.tz import tzutc
 from typing import Optional, List, Callable
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
+from lib.models import Track, Scrobble
 import sys
 import os
 import pickle
@@ -20,6 +21,7 @@ class LastFM:
         self.username=username
         if not self.API_KEY and not self.testing: raise ValueError("No API KEY passed to LastFM or set in env")
         self.SCROBBLES_CACHE: dict={}
+        self.__scrobbles_parsed = False
         self.SCROBBLE_FILE=f'{username}.scrobbles'
 
     def get_scrobbles(self) -> List[dict]:
@@ -38,7 +40,9 @@ class LastFM:
             else:
                 payload = {'from':self.SCROBBLES_CACHE['last updated']}
                 payload['to'] = int(datetime.now().timestamp())
-                return self._get_scrobbles_from_lf(payload=payload)['scrobbles']    
+                if not self.__scrobbles_parsed:
+                    self.__parse_scrobbles()
+                return  self.SCROBBLES_CACHE['scrobbles']
     
     def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
         page, total_pages = 0,1
@@ -54,6 +58,24 @@ class LastFM:
         self.SCROBBLES_CACHE['last updated']=int(datetime.now().timestamp())
         self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
+
+    def __parse_scrobbles(self) -> None:
+        parsed_scrobbles: list=[]
+        for scrobble in self.SCROBBLES_CACHE['scrobbles'] :
+            t = Track(title=scrobble["name"],artist_name=scrobble["artist"]['#text'],album_name=scrobble["album"]['#text'])
+            if "date" in scrobble:
+                s = Scrobble(track=t,date=int(scrobble["date"]["uts"]))
+            #set currently playing to now
+            else:
+                try:
+                    if scrobble["@attr"]["nowplaying"] == 'true': 
+                        s = Scrobble(track=t,date=int(datetime.now().timestamp()))
+                except:
+                    continue
+            parsed_scrobbles.append(s)
+        self.SCROBBLES_CACHE['scrobbles'] = parsed_scrobbles
+        self.__scrobbles_parsed=True
+
 
 
     def _new_lf_user(self) -> bool:
