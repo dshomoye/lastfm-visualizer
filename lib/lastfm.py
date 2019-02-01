@@ -33,16 +33,15 @@ class LastFM:
 
         if self._new_lf_user():
             self.SCROBBLES_CACHE['scrobbles'] = []
-            return self._get_scrobbles_from_lf()['scrobbles']
+            self._get_scrobbles_from_lf()['scrobbles']
         else:
-            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated'])+relativedelta(minutes=1) >= datetime.now():
-                return self.SCROBBLES_CACHE['scrobbles']
-            else:
+            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated'])+relativedelta(minutes=1) <= datetime.now():
                 payload = {'from':self.SCROBBLES_CACHE['last updated']}
                 payload['to'] = int(datetime.now().timestamp())
-                if not self.__scrobbles_parsed:
-                    self.__parse_scrobbles()
-                return  self.SCROBBLES_CACHE['scrobbles']
+                self._get_scrobbles_from_lf(payload=payload)['scrobbles']
+        if not self.__scrobbles_parsed:
+            self.__parse_scrobbles()
+        return  self.SCROBBLES_CACHE['scrobbles']
     
     def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
         page, total_pages = 0,1
