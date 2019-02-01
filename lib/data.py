@@ -18,7 +18,6 @@ class Scrobbleswrangler:
 
         self.lf = LastFM(username=lastfm_username)
         self.SCROBBLES_CACHE=None
-        #self.__scrobbles_parsed = False
     
     def __get_scrobbles(self):
         if not self.SCROBBLES_CACHE:

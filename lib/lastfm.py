@@ -39,8 +39,8 @@ class LastFM:
                 payload = {'from':self.SCROBBLES_CACHE['last updated']}
                 payload['to'] = int(datetime.now().timestamp())
                 self._get_scrobbles_from_lf(payload=payload)['scrobbles']
-        if not self.__scrobbles_parsed:
-            self.__parse_scrobbles()
+        """         if not self.__scrobbles_parsed:
+            self.__parse_scrobbles() """
         return  self.SCROBBLES_CACHE['scrobbles']
     
     def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
@@ -49,7 +49,7 @@ class LastFM:
         while total_pages > page:
             page+=1
             scrobbles_in_page = self.__get_scrobbles_page(page=page,payload=payload)
-            self.SCROBBLES_CACHE['scrobbles']+=scrobbles_in_page["recenttracks"]["track"]
+            self.SCROBBLES_CACHE['scrobbles']+=self.__parse_scrobbles(scrobbles_in_page["recenttracks"]["track"])
             total_pages = int(scrobbles_in_page["recenttracks"]["@attr"]["totalPages"])
             progress=int(page/total_pages*100) if total_pages else 0
             print(f"\r {'=' * int(progress/2)}>  {progress}%",end="")
@@ -57,10 +57,12 @@ class LastFM:
         self.SCROBBLES_CACHE['last updated']=int(datetime.now().timestamp())
         self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
+    
 
-    def __parse_scrobbles(self) -> None:
-        parsed_scrobbles: list=[]
-        for scrobble in self.SCROBBLES_CACHE['scrobbles'] :
+
+    def __parse_scrobbles(self, scrobbles: List[dict]) -> List[Scrobble]:
+        parsed_scrobbles: List[Scrobble]=[]
+        for scrobble in scrobbles:
             t = Track(title=scrobble["name"],artist_name=scrobble["artist"]['#text'],album_name=scrobble["album"]['#text'])
             if "date" in scrobble:
                 s = Scrobble(track=t,date=int(scrobble["date"]["uts"]))
@@ -72,8 +74,7 @@ class LastFM:
                 except:
                     continue
             parsed_scrobbles.append(s)
-        self.SCROBBLES_CACHE['scrobbles'] = parsed_scrobbles
-        self.__scrobbles_parsed=True
+        return parsed_scrobbles
 
 
 

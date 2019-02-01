@@ -192,7 +192,7 @@ def test_scrobbles_endpoint_returns_scrobbles(client):
         "date": "2019-01-23 00:00:00+00:00 2019-01-23 12:00:00+00:00",
         "scrobbles": [
             {
-                "Date": "2019-01-23 11:57:47+00:00",
+                "date": "Wed, 23 Jan 2019 11:57:47 GMT",
                 "track": {
                     "album": "The Last Rocket",
                     "artist": "Takeoff",
@@ -200,7 +200,7 @@ def test_scrobbles_endpoint_returns_scrobbles(client):
                 }
             },
             {
-                "Date": "2019-01-23 11:54:49+00:00",
+                "date": "Wed, 23 Jan 2019 11:54:49 GMT",
                 "track": {
                     "album": "Splashin",
                     "artist": "Rich the Kid",
@@ -208,7 +208,7 @@ def test_scrobbles_endpoint_returns_scrobbles(client):
                 }
             },
             {
-                "Date": "2019-01-23 11:51:22+00:00",
+                "date": "Wed, 23 Jan 2019 11:51:22 GMT",
                 "track": {
                     "album": "Feelin Like",
                     "artist": "Flipp Dinero",
@@ -216,7 +216,7 @@ def test_scrobbles_endpoint_returns_scrobbles(client):
                 }
             },
             {
-                "Date": "2019-01-23 11:48:50+00:00",
+                "date": "Wed, 23 Jan 2019 11:48:50 GMT",
                 "track": {
                     "album": "The Wave",
                     "artist": "R3hab",
