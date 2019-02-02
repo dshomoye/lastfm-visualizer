@@ -4,6 +4,7 @@ from firebase_admin import firestore
 from datetime import datetime
 from lib.models import Scrobble, Track, Artist
 from typing import List, Optional, Dict, Any
+from lib.errors import FireStoreLimitExceedError
 
 class FireStoreHelper:
 
@@ -20,6 +21,8 @@ class FireStoreHelper:
         batch = self.db.batch()
         # save from list in slices of 500
         s,n,i = 0,500,500
+        size: int = len(scrobbles)
+        if size > 20000: raise FireStoreLimitExceedError("The size of scrobble exceeds the free tier for fire store ☹️")
         while s < len(scrobbles):
             for scrobble in scrobbles[s:n]:
                 doc_ref=user_scrobbles_ref.document(str(hash(scrobble)))
