@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import total_ordering
-from dateutil.tz import UTC
+from dateutil.tz import UTC # type: ignore
 from typing import Optional
 
 class Artist:

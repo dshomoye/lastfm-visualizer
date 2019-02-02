@@ -6,24 +6,37 @@ from typing import Optional, List, Callable
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 from lib.models import Track, Scrobble
 from storage import FireStoreHelper
+from flask import current_app as app
+from flask import g
 import sys
 import os
 import pickle
+
+
+def _get_firestore() -> FireStoreHelper:
+    fs = getattr(g, '_firestore', None)
+    print('tried firestore')
+    print(fs)
+    if fs is None:
+        print("didnt get firestore")
+        fs = g._firestore = FireStoreHelper("users")
+    return fs
 
 class LastFM:
     lastfm_api = "http://ws.audioscrobbler.com/2.0/"
     key = None
 
     key = os.getenv('LASTFM_API_KEY')
-    testing = os.getenv('TESTING')
 
     def __init__(self, api_key: Optional[str]=key, username: str='sonofatailor') -> None:
         self.API_KEY=api_key
         self.username=username
-        if not self.API_KEY and not self.testing: raise ValueError("No API KEY passed to LastFM or set in env")
         self.SCROBBLES_CACHE: dict={}
         self.__scrobbles_parsed = False
         self.SCROBBLE_FILE=f'{username}.scrobbles'
+        if not self.API_KEY and not app.config['TESTING']: raise ValueError("No API KEY passed to LastFM or set in env")
+        self.fs = None if app.config['TESTING'] else _get_firestore()
+
 
     def get_scrobbles(self) -> List[dict]:
         """get scrobbles dict
@@ -34,16 +47,17 @@ class LastFM:
 
         if self._new_lf_user():
             self.SCROBBLES_CACHE['scrobbles'] = []
-            self._get_scrobbles_from_lf()['scrobbles']
+            self._get_scrobbles_from_lf()
         else:
-            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last updated'])+relativedelta(minutes=1) <= datetime.now():
-                payload = {'from':self.SCROBBLES_CACHE['last updated']}
+            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])+relativedelta(minutes=1) <= datetime.now():
+                payload = {'from':self.SCROBBLES_CACHE['last_update']}
                 payload['to'] = int(datetime.now().timestamp())
-                self._get_scrobbles_from_lf(payload=payload)['scrobbles']
+                self._get_scrobbles_from_lf(payload=payload)
         """         if not self.__scrobbles_parsed:
             self.__parse_scrobbles() """
         return  self.SCROBBLES_CACHE['scrobbles']
-    
+
+
     def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
         page, total_pages = 0,1
         print(f"downloading scrobbles for {self.username}... started at {datetime.now()}")
@@ -55,10 +69,9 @@ class LastFM:
             progress=int(page/total_pages*100) if total_pages else 0
             print(f"\r {'=' * int(progress/2)}>  {progress}%",end="")
         print(f"downloaded, ended at {datetime.now()}")
-        self.SCROBBLES_CACHE['last updated']=int(datetime.now().timestamp())
+        self.SCROBBLES_CACHE['last_update']=int(datetime.now().timestamp())
         self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
-    
 
 
     def __parse_scrobbles(self, scrobbles: List[dict]) -> List[Scrobble]:
@@ -78,7 +91,6 @@ class LastFM:
         return parsed_scrobbles
 
 
-
     def _new_lf_user(self) -> bool:
         """check if user scrobbles have been saved already
         
@@ -88,6 +100,7 @@ class LastFM:
 
         return not self.__read_scrobbles_from_cache_file()
     
+
     def __get_scrobbles_page(self,page: int, payload: dict = {}) -> dict:
         """gets a single page of a request from last fm
         
@@ -112,10 +125,17 @@ class LastFM:
             raise ScrobbleFetchFailed(f"An error occured getting srobbles from LastFM, response:{r.text}")
         return r.json() 
     
-    def __write_scrobbles_to_cache_file(self) -> None:
 
+    def __write_scrobbles_to_cache_file(self) -> None:
+        if self.fs:
+            self.fs.save_user_scrobbles(
+                username=self.username,
+                scrobbles=self.SCROBBLES_CACHE['scrobbles'],
+                last_update=self.SCROBBLES_CACHE['last_update']
+            )
         with open(self.SCROBBLE_FILE, 'wb') as output:
             pickle.dump(self.SCROBBLES_CACHE, output, pickle.HIGHEST_PROTOCOL)
+    
     
     def __read_scrobbles_from_cache_file(self) -> bool:
         """read scrobble from cache file and save to instance cache dict
@@ -152,6 +172,7 @@ class LastFM:
         payload["api_key"]=self.API_KEY
         r: function = request_methods[http_method]
         return r(self.lastfm_api,params=payload)
+
 
 if __name__=="__main__":
     lf = LastFM(username="sonofatailor")

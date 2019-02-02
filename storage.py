@@ -3,7 +3,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 from datetime import datetime
 from lib.models import Scrobble, Track, Artist
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 class FireStoreHelper:
 
@@ -30,19 +30,15 @@ class FireStoreHelper:
         return True
 
 
-    def get_all_user_scrobbles(self, username: str) ->  List[Scrobble]:
+    def get_all_user_scrobbles(self, username: str) ->  dict:
         user_doc_ref = self.root_collection.document(username)
         user_scrobbles = user_doc_ref.collection('scrobbles').get()
-        result: List[Scrobble] = []
+        result_list: List[Scrobble] = []
         for s in user_scrobbles:
             temp = Scrobble.from_dict(s.to_dict())
-            result.append(temp)
-        print(result)
+            result_list.append(temp)
+        last_update: int = int(user_doc_ref.get().to_dict()['last_update'])
+        result: Dict[str, Any]={}
+        result['scrobbles'] = result_list
+        result['last_udpate'] = last_update
         return result    
-
-fs = FireStoreHelper("users")
-test_track = Track("Rumors",artist_name="R3hab",album_name="The Wave")
-test_scrobble = Scrobble(track=test_track,date=int(datetime.now().timestamp()))
-scrobs = [test_scrobble]
-fs.save_user_scrobbles('user',scrobs,int(datetime.now().timestamp()))
-fs.get_all_user_scrobbles('user')

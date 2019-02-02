@@ -1,7 +1,7 @@
 from lib.lastfm import LastFM
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta
-from dateutil.tz import UTC
+from dateutil.tz import UTC # type: ignore
 from lib.models import Scrobble, Track, Artist, Album
 from collections import Counter
 from typing import List, Tuple

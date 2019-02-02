@@ -4,7 +4,7 @@ from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
-from dateutil.tz import UTC
+from dateutil.tz import UTC # type: ignore
 import typing
 
 scrobbles_api = Blueprint('scrobbles',__name__)

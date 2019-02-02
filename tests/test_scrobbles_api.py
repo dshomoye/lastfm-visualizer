@@ -14,7 +14,6 @@ DUMMY_LF_DATA_PATH = 'tests/data.json'
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    os.environ['TESTING'] = "True"
     client = app.test_client()
 
     yield client
