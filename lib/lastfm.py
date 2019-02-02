@@ -5,6 +5,7 @@ from dateutil.tz import tzutc
 from typing import Optional, List, Callable
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
 from lib.models import Track, Scrobble
+from storage import FireStoreHelper
 import sys
 import os
 import pickle
@@ -112,6 +113,7 @@ class LastFM:
         return r.json() 
     
     def __write_scrobbles_to_cache_file(self) -> None:
+
         with open(self.SCROBBLE_FILE, 'wb') as output:
             pickle.dump(self.SCROBBLES_CACHE, output, pickle.HIGHEST_PROTOCOL)
     

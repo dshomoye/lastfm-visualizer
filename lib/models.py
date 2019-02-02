@@ -85,6 +85,15 @@ class Scrobble:
             "date":  self.date
         }
 
+    @staticmethod
+    def from_dict(scrobble: dict):
+        t= Track(
+            title=scrobble['track']['title'],
+            artist_name=scrobble['track']['artist'],
+            album_name=scrobble['track']['album']
+        )
+        return Scrobble(track=t,date=scrobble['date'].timestamp())
+
     def __lt__(self,other):
         if not isinstance(other, Scrobble): return NotImplemented
         return self.date < other.date
@@ -94,7 +103,10 @@ class Scrobble:
         return self.date == other.date and self.track == other.track
     
     def __repr__(self):
-        return f"{{Track: {self.track}, Date: {self.date} }}"
+        return f"{self.dict}"
+    
+    def __hash__(self):
+        return hash(self.__repr__())
 
 
 if __name__ == "__main__":
