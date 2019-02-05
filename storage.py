@@ -5,6 +5,7 @@ from datetime import datetime
 from lib.models import Scrobble, Track, Artist
 from typing import List, Optional, Dict, Any
 from lib.errors import FireStoreLimitExceedError
+from google.cloud.exceptions import NotFound as NotFoundInFireStore
 
 class FireStoreHelper:
 
@@ -45,3 +46,31 @@ class FireStoreHelper:
         result['scrobbles'] = result_list
         result['last_udpate'] = last_update
         return result    
+    
+
+    def get_user_scrobles_in_period(self,username: str, start_period: datetime, end_period: datetime) -> List[Scrobble]:
+        user_scrobbles_ref = self.__get_user_scrobbles_ref(username)
+        query_ref = user_scrobbles_ref.where('date', '>=', start_period).where('date', '<=', end_period)
+        result = query_ref.get()
+        result_list: List[Scrobble] = []
+        for s in result:
+            t = Scrobble.from_dict(s.to_dict())
+            result_list.append(t)
+        return result_list
+    
+    def check_user_in_db(self,username: str) -> bool:
+        user_ref = self.root_collection.document(username)
+        try:
+            user = user_ref.get()
+            return True
+        except NotFoundInFireStore:
+            return False
+    
+    def get_last_scrobble_update(self,username: str):
+        user_doc_ref = self.root_collection.document(username)
+        last_update: int = int(user_doc_ref.get().to_dict()['last_update'])
+        return last_update
+        
+    def __get_user_scrobbles_ref(self,username: str):
+        user_doc_ref = self.root_collection.document(username)
+        return user_doc_ref.collection('scrobbles')
