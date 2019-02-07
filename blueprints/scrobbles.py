@@ -1,6 +1,7 @@
 from flask import Blueprint,request, jsonify, Response, make_response
 from lib.data import Scrobbleswrangler
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
+from google.api_core.exceptions import ResourceExhausted as GoogleQuotaLimitError
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
@@ -105,6 +106,9 @@ def __return_response_for_exception(error: Exception) -> Response:
     elif isinstance(error,ScrobbleFetchFailed):
         e = {"errors":["unable to get scrobbles from lastFM",f"{error}"]}
         return make_response(jsonify(e),500)
+    elif isinstance(error,GoogleQuotaLimitError):
+        e = {"errors":["request limit for firebase has been reach for the day, come back tomorrow 🙃"]}
+        return make_response(jsonify(e),429)
     else:
         fetch_failed = {"errors": [str(error)]}
         return make_response(jsonify(fetch_failed), 400) 
