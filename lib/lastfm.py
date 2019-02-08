@@ -5,7 +5,7 @@ from dateutil.tz import tzutc
 from typing import Optional, List, Callable
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed, FireStoreError
 from lib.models import Track, Scrobble
-from storage import FireStoreHelper
+from lib.storage import FireStoreHelper
 from flask import current_app as app
 from flask import g
 import sys
