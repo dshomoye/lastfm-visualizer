@@ -22,12 +22,14 @@ def get_scrobbles(lf_username):
         #start = start.replace(tzinfo=UTC)
         scobble_data = __get_scrobble_data(lf_username)
         track_scrobbles = {
-            "date": f'{start} {end}',
+            "start" : f'{start}',
+            "end" : f'{end}',
             "scrobbles": scobble_data.get_scrobbles_in_period(
                 start_period=start,end_period=end)
         }
         return jsonify(track_scrobbles)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])
@@ -39,7 +41,8 @@ def get_top_tracks(lf_username):
         limit = req['limit']
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
-            "date": f'{start} {end}',
+            "start" : f'{start}',
+            "end" : f'{end}',
             "top tracks": scobble_data.get_top_tracks_for_period(start,end,int(limit))
         }
         return jsonify(top_tracks)
@@ -55,7 +58,8 @@ def get_top_albums(lf_username):
         limit = req['limit']
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
-            "date": f'{start} {end}',
+            "start" : f'{start}',
+            "end" : f'{end}',
             "top albums": scobble_data.get_top_albums_for_period(start,end,limit)
         }
         return jsonify(top_tracks)
@@ -71,7 +75,8 @@ def get_top_artist(lf_username):
         limit = req['limit']
         scobble_data = __get_scrobble_data(lf_username)
         top_tracks = {
-            "date": f'{start} {end}',
+            "start" : f'{start}',
+            "end" : f'{end}',
             "top artists": scobble_data.get_top_artists_for_period(start,end,limit)
         }
         return jsonify(top_tracks)

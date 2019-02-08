@@ -106,7 +106,7 @@ class Scrobble:
         return f"{self.dict}"
     
     def __hash__(self):
-        return hash(self.__repr__())
+        return int(self.date.timestamp())
 
 
 if __name__ == "__main__":

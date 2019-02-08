@@ -21,7 +21,7 @@ class FireStoreHelper:
         user_scrobbles_ref = user_doc_ref.collection('scrobbles')
         batch = self.db.batch()
         # save from list in slices of 500
-        s,n,i = 0,500,500
+        s,n,i = 0,450,450
         size: int = len(scrobbles)
         if size > 20000: raise FireStoreLimitExceedError("The size of scrobble exceeds the free tier for fire store ☹️")
         while s < len(scrobbles):
@@ -30,7 +30,7 @@ class FireStoreHelper:
                 batch.set(doc_ref,scrobble.dict)
             s,n=n,n+i
             batch.commit()
-        user_doc_ref.set({'last_update':last_update})
+        if last_update: user_doc_ref.set({'last_update':last_update})
         return True
 
 
@@ -59,10 +59,10 @@ class FireStoreHelper:
         return result_list
     
     def check_user_in_db(self,username: str) -> bool:
-        user_ref = self.root_collection.document(username)
         try:
-            user = user_ref.get()
-            return True
+            user_doc_ref = self.root_collection.document(username)
+            last_udpate = user_doc_ref.get().to_dict()
+            return last_udpate is not None
         except NotFoundInFireStore:
             return False
     

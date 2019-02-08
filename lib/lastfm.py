@@ -64,18 +64,20 @@ class LastFM:
 
     def _get_scrobbles_from_lf(self,payload: dict={}) -> dict:
         page, total_pages = 0,1
+        if 'scrobbles' not in self.SCROBBLES_CACHE: self.SCROBBLES_CACHE['scrobbles'] = []
         print(f"downloading scrobbles for {self.username}... started at {datetime.now()}")
         while total_pages > page:
             page+=1
             scrobbles_in_page = self.__get_scrobbles_page(page=page,payload=payload)
             parsed_scrobbles = self.__parse_scrobbles(scrobbles_in_page["recenttracks"]["track"])
             self.SCROBBLES_CACHE['scrobbles']+= parsed_scrobbles
-            #self._write_scrobbles_to_firestore(parsed_scrobbles)
+            self._write_scrobbles_to_firestore(parsed_scrobbles)
             total_pages = int(scrobbles_in_page["recenttracks"]["@attr"]["totalPages"])
             progress=int(page/total_pages*100) if total_pages else 0
             print(f"\r {'=' * int(progress/2)}>  {progress}%",end="")
         print(f"downloaded, ended at {datetime.now()}")
-        self.SCROBBLES_CACHE['last_update']=int(datetime.now().timestamp())
+        if self.SCROBBLES_CACHE['scrobbles']:
+            self.SCROBBLES_CACHE['last_update']=int(self.SCROBBLES_CACHE['scrobbles'][-1].date.timestamp())
         self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
 
@@ -103,10 +105,11 @@ class LastFM:
         Returns:
             bool:
         """
-        if self.fs and self.fs.check_user_in_db(self.username):
+        if self.fs:
+            if self.fs.check_user_in_db(self.username):
                 self.SCROBBLES_CACHE['last_update'] = self.fs.get_last_scrobble_update(self.username)
-                self.SCROBBLES_CACHE['scrobbles'] = []
                 return False
+            else: return True
         else:
             return not self.__read_scrobbles_from_cache_file()
     
@@ -140,7 +143,7 @@ class LastFM:
             self.fs.save_user_scrobbles(
                 username=self.username,
                 scrobbles= scrobbles,
-                last_update=int(datetime.now().timestamp())
+                last_update=int(scrobbles[-1].date.timestamp()) if scrobbles else 0
             )
 
 
