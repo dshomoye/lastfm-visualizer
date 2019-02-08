@@ -29,7 +29,6 @@ def get_scrobbles(lf_username):
         }
         return jsonify(track_scrobbles)
     except Exception as e:
-        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])
@@ -98,16 +97,13 @@ def get_listening_frequency(lf_username):
         }
         return jsonify(frequency)
     except Exception as e:
-        raise e
+        return __return_response_for_exception(e)
             
 
 def __return_response_for_exception(error: Exception) -> Response:
     if isinstance(error,LastFMUserNotFound):
         user_not_found = {"errors": [str(error)]}
         return make_response(jsonify(user_not_found),404)
-    elif isinstance(error,ValueError) or isinstance(error,KeyError):
-        bad_date_request = {"errors": ["missing attribute or bad date format" ]}
-        return make_response(jsonify(bad_date_request),422)
     elif isinstance(error,ScrobbleFetchFailed):
         e = {"errors":["unable to get scrobbles from lastFM",f"{error}"]}
         return make_response(jsonify(e),500)
