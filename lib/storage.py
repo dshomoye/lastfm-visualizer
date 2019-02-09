@@ -52,10 +52,14 @@ class FireStoreHelper:
         user_scrobbles_ref = self.__get_user_scrobbles_ref(username)
         query_ref = user_scrobbles_ref.where('date', '>=', start_period).where('date', '<=', end_period)
         result = query_ref.get()
-        result_list: List[Scrobble] = []
+        #result_list: List[Scrobble] = []
+        result_list: List[Scrobble] = list((
+            Scrobble.from_dict(s.to_dict()) for s in result
+        ))
+        '''
         for s in result:
             t = Scrobble.from_dict(s.to_dict())
-            result_list.append(t)
+            result_list.append(t)'''
         return result_list
     
     def check_user_in_db(self,username: str) -> bool:

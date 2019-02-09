@@ -32,7 +32,8 @@ class LastFM:
         self.__scrobbles_parsed = False
         self.SCROBBLE_FILE=f'{username}.scrobbles'
         if not self.API_KEY and not app.config['TESTING']: raise ValueError("No API KEY passed to LastFM or set in env")
-        self.fs = None if app.config['TESTING'] else _get_firestore()
+        #self.fs = None if app.config['TESTING'] else _get_firestore()
+        self.fs = None
         self._get_or_update_user_scrobbles()
 
 
@@ -48,8 +49,7 @@ class LastFM:
             self.SCROBBLES_CACHE['scrobbles'] = []
             self._get_scrobbles_from_lf()
         else:
-            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])+relativedelta(hours=1) <= datetime.now():
-                print(f"last update: {datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])}")
+            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])+relativedelta(minutes=1) <= datetime.now():
                 payload = {'from':self.SCROBBLES_CACHE['last_update']}
                 payload['to'] = int(datetime.now().timestamp())
                 self._get_scrobbles_from_lf(payload=payload)
@@ -79,7 +79,7 @@ class LastFM:
             print(f"\r {'=' * int(progress/2)}>  {progress}%",end="")
         print(f"downloaded, ended at {datetime.now()}")
         if self.SCROBBLES_CACHE['scrobbles']:
-            self.SCROBBLES_CACHE['last_update']=int(self.SCROBBLES_CACHE['scrobbles'][-1].date.timestamp())
+            self.SCROBBLES_CACHE['last_update']=int(datetime.now().timestamp())
         if not self.fs: self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
 
