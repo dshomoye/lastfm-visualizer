@@ -44,10 +44,12 @@ class LastFM:
         """
 
         if self._new_lf_user():
+            print("Initializing new User!")
             self.SCROBBLES_CACHE['scrobbles'] = []
             self._get_scrobbles_from_lf()
         else:
-            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])+relativedelta(minutes=1) <= datetime.now():
+            if datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])+relativedelta(hours=1) <= datetime.now():
+                print(f"last update: {datetime.fromtimestamp(self.SCROBBLES_CACHE['last_update'])}")
                 payload = {'from':self.SCROBBLES_CACHE['last_update']}
                 payload['to'] = int(datetime.now().timestamp())
                 self._get_scrobbles_from_lf(payload=payload)
@@ -78,7 +80,7 @@ class LastFM:
         print(f"downloaded, ended at {datetime.now()}")
         if self.SCROBBLES_CACHE['scrobbles']:
             self.SCROBBLES_CACHE['last_update']=int(self.SCROBBLES_CACHE['scrobbles'][-1].date.timestamp())
-        self.__write_scrobbles_to_cache_file()
+        if not self.fs: self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
 
 
@@ -143,7 +145,7 @@ class LastFM:
             self.fs.save_user_scrobbles(
                 username=self.username,
                 scrobbles= scrobbles,
-                last_update=int(scrobbles[-1].date.timestamp()) if scrobbles else 0
+                last_update=int(scrobbles[0].date.timestamp()) if scrobbles else 0
             )
 
 
