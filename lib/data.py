@@ -1,10 +1,11 @@
 from lib.lastfm import LastFM
 from datetime import datetime, date, time
 from dateutil.relativedelta import relativedelta
-from dateutil.tz import UTC
+from dateutil.tz import UTC # type: ignore
 from lib.models import Scrobble, Track, Artist, Album
 from collections import Counter
 from typing import List, Tuple
+import functools
 import typing
 import os
 
@@ -18,11 +19,6 @@ class Scrobbleswrangler:
 
         self.lf = LastFM(username=lastfm_username)
         self.SCROBBLES_CACHE=None
-        #self.__scrobbles_parsed = False
-    
-    def __get_scrobbles(self):
-        if not self.SCROBBLES_CACHE:
-            self.SCROBBLES_CACHE = self.lf.get_scrobbles()
 
     def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> typing.Counter[datetime]:
         """gets the number of tracks listened to within a given time range/unit
@@ -109,12 +105,11 @@ class Scrobbleswrangler:
             List[Scrobble]: -
         """
 
-        self.__get_scrobbles()
-        return [ scrobble.dict for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period]
+        return [s.dict for s in self.lf.get_scrobbles_in_period(start_period,end_period)]
 
-
+    @functools.lru_cache(maxsize=None)
     def get_tracks_and_count_for_period(self, start_period: datetime, end_period: datetime) -> typing.Counter[Track]:
-        """gets all the tracks withing given period and returns Counter of how many times each were scrobbled
+        """gets all the tracks within given period and returns Counter of how many times each were scrobbled
         
         Args:
             start_period (datetime): -
@@ -124,8 +119,7 @@ class Scrobbleswrangler:
             typing.Counter[Track]: -
         """
 
-        self.__get_scrobbles()
-        return Counter((scrobble.track for scrobble in self.SCROBBLES_CACHE if start_period <= scrobble.date <= end_period ))   
+        return Counter((scrobble.track for scrobble in self.lf.get_scrobbles_in_period(start_period,end_period) ))   
     
     def get_top_artists_for_period(self, start_period: datetime, end_period: datetime, number_of_artists=5) -> List[typing.Dict[str,typing.Any]]:
         """[summary]

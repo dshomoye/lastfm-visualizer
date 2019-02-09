@@ -1,6 +1,7 @@
 from datetime import datetime
 from functools import total_ordering
-from dateutil.tz import UTC
+from dateutil.tz import UTC # type: ignore
+from typing import Optional
 
 class Artist:
     def __init__(self,name: str):
@@ -19,22 +20,23 @@ class Album:
 
 
 class Track:
-    def __init__(self, title: str, artist_name: str, album_name: str, artist = None, album = None):
-        """[summary]
+    def __init__(self, title: str, artist_name: str, album_name: str, artist: Artist = None, album: Album = None):
+        '''Track object with track info
         
         Args:
             title (str): [description]
             artist_name (str): [description]
-            album_name (str, optional): Defaults to None. [description]
-            artist ([type], optional): Defaults to None. [description]
-            album ([type], optional): Defaults to None. [description]
-        """
+            album_name (str): [description]
+            artist (Artist, optional): Defaults to None. [description]
+            album (Album, optional): Defaults to None. [description]
+        '''
+
 
         self.title = title
         self.artist_name = artist_name
         self.album_name = album_name
-        self.artist: Artist = artist
-        self.album: Album = album
+        self.artist: Optional[Artist] = artist
+        self.album: Optional[Album] = album
         self.dict = {
             "title": self.title,
             "artist": self.artist_name,
@@ -80,8 +82,17 @@ class Scrobble:
             raise ValueError(f"failed to create Scrobble object")
         self.dict = {
             "track": self.track.dict,
-            "Date":  str(self.date)
+            "date":  self.date
         }
+
+    @staticmethod
+    def from_dict(scrobble: dict):
+        t= Track(
+            title=scrobble['track']['title'],
+            artist_name=scrobble['track']['artist'],
+            album_name=scrobble['track']['album']
+        )
+        return Scrobble(track=t,date=scrobble['date'].timestamp())
 
     def __lt__(self,other):
         if not isinstance(other, Scrobble): return NotImplemented
@@ -92,7 +103,10 @@ class Scrobble:
         return self.date == other.date and self.track == other.track
     
     def __repr__(self):
-        return f"{{Track: {self.track}, Date: {self.date} }}"
+        return f"{self.dict}"
+    
+    def __hash__(self):
+        return int(self.date.timestamp())
 
 
 if __name__ == "__main__":

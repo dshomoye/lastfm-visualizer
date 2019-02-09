@@ -10,7 +10,7 @@ jobs:
       # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
       - image: circleci/python:3.7.0
         environment:
-          TESTING: True
+          PYTHONHASHSEED: 0
           #TZ: "America/New_York"
       
       # Specify service dependencies here if necessary
