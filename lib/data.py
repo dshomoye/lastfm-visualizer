@@ -5,6 +5,7 @@ from dateutil.tz import UTC # type: ignore
 from lib.models import Scrobble, Track, Artist, Album
 from collections import Counter
 from typing import List, Tuple
+import functools
 import typing
 import os
 
@@ -106,9 +107,9 @@ class Scrobbleswrangler:
 
         return [s.dict for s in self.lf.get_scrobbles_in_period(start_period,end_period)]
 
-
+    @functools.lru_cache(maxsize=None)
     def get_tracks_and_count_for_period(self, start_period: datetime, end_period: datetime) -> typing.Counter[Track]:
-        """gets all the tracks withing given period and returns Counter of how many times each were scrobbled
+        """gets all the tracks within given period and returns Counter of how many times each were scrobbled
         
         Args:
             start_period (datetime): -
