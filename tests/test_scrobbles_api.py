@@ -4,6 +4,7 @@ import json
 import responses
 
 from lastfm_visualizer.app import app
+from lib.database import DbHelper
 
 LF_TEST_USERNAME="testuser"
 LF_API = "http://ws.audioscrobbler.com/2.0"
@@ -14,6 +15,7 @@ DUMMY_LF_DATA_PATH = 'tests/data.json'
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///test.db'
     client = app.test_client()
 
     yield client
@@ -73,7 +75,6 @@ def test_top_tracks_endpoint_returns_right_result(client):
 	"limit":3
     }
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-tracks',data=json.dumps(data),content_type='application/json')
-    assert r.status_code == 200
     expected_result = {
         "start": "2019-01-23 00:00:00+00:00",
         "end" : "2019-01-25 00:00:00+00:00",
@@ -105,6 +106,8 @@ def test_top_tracks_endpoint_returns_right_result(client):
         ]
     }
     assert r.json == expected_result
+
+
 
 
 @responses.activate
@@ -144,6 +147,19 @@ def test_top_albums_endpoint_returns_right_result(client):
         ]
     }
     assert r.json == expected_result
+
+@responses.activate
+def test_update_user_scrobbles(client):
+    lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
+    responses.add_callback(
+        responses.GET, lf_endpoint,
+        callback=standard_data_request_callback,
+        content_type='application/json',
+    )
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+    assert r.status_code == 200
+    print(r.data)
+
 
 @responses.activate
 def test_top_artists_endpoint_returns_right_result(client):
