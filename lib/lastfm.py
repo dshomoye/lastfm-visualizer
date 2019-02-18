@@ -62,6 +62,7 @@ class LastFMHelper:
                 scrobbles_in_page = self.__get_scrobbles_page(page=page,payload=payload)
             except ScrobbleFetchFailed:
                 self.db.set_user_update_to_min()
+                raise ScrobbleFetchFailed
             parsed_scrobbles = self.__parse_scrobbles(scrobbles_in_page["recenttracks"]["track"])
             self.SCROBBLES_CACHE['scrobbles']+= parsed_scrobbles
             self._write_scrobbles_to_db(parsed_scrobbles)

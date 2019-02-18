@@ -46,7 +46,6 @@ def test_an_update_of_scrobbles(client):
     )
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
     assert r.status_code == 200
-    print(r.data)
 
 
 @responses.activate
@@ -63,7 +62,6 @@ def test_frequency_endpoint_returns_right_frequency(client):
         "scale":"days"
     }
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
-    print(r.data)
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/frequency',data=json.dumps(data),content_type='application/json')
     expected_result = {
         "end": "2019-01-25 00:00:00+00:00",
@@ -73,7 +71,6 @@ def test_frequency_endpoint_returns_right_frequency(client):
         },
         "start": "2019-01-23 00:00:00+00:00"
     }
-    print(r.data)
     assert r.status_code == 200
     assert r.json == expected_result
 
@@ -99,7 +96,7 @@ def test_top_tracks_endpoint_returns_right_result(client):
         "start": "2019-01-23 00:00:00+00:00",
         "top tracks": [
             {
-                "album": "Rumors (With Sofia Carson)",
+                "album": "The Wave",
                 "artist": "R3hab",
                 "played": 77,
                 "track": "Rumors (With Sofia Carson)"
