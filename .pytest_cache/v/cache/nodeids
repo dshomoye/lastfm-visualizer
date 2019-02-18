@@ -1,8 +1,0 @@
-[
-  "tests/test_scrobbles_api.py::test_ping_endpoint",
-  "tests/test_scrobbles_api.py::test_frequency_endpoint_returns_right_frequency",
-  "tests/test_scrobbles_api.py::test_top_tracks_endpoint_returns_right_result",
-  "tests/test_scrobbles_api.py::test_top_albums_endpoint_returns_right_result",
-  "tests/test_scrobbles_api.py::test_top_artists_endpoint_returns_right_result",
-  "tests/test_scrobbles_api.py::test_scrobbles_endpoint_returns_scrobbles"
-]

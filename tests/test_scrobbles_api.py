@@ -9,18 +9,19 @@ from lib.database import DbHelper
 LF_TEST_USERNAME="testuser"
 LF_API = "http://ws.audioscrobbler.com/2.0"
 DUMMY_LF_DATA_PATH = 'tests/data.json'
+TEST_DB = 'tests/testdb.db'
 
 
 
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///test.db'
+    app.config['SQLALCHEMY_DATABASE_URI']=f'sqlite:///{TEST_DB}'
     client = app.test_client()
 
     yield client
-    if os.path.exists(f'{LF_TEST_USERNAME}.scrobbles'):
-        os.remove(f'{LF_TEST_USERNAME}.scrobbles')
+    if os.path.exists(TEST_DB):
+        os.remove(TEST_DB)
 
 
 def standard_data_request_callback(request):
@@ -36,6 +37,19 @@ def test_ping_endpoint(client):
 
 
 @responses.activate
+def test_an_update_of_scrobbles(client):
+    lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
+    responses.add_callback(
+        responses.GET, lf_endpoint,
+        callback=standard_data_request_callback,
+        content_type='application/json',
+    )
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+    assert r.status_code == 200
+    print(r.data)
+
+
+@responses.activate
 def test_frequency_endpoint_returns_right_frequency(client):
     lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
     responses.add_callback(
@@ -48,15 +62,18 @@ def test_frequency_endpoint_returns_right_frequency(client):
         "end": "2019-01-25",
         "scale":"days"
     }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+    print(r.data)
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/frequency',data=json.dumps(data),content_type='application/json')
     expected_result = {
         "end": "2019-01-25 00:00:00+00:00",
         "frequency": {
-            "2019-01-23": 151,
-            "2019-01-24": 30
+            "2019-01-23": 154,
+            "2019-01-24": 25
         },
         "start": "2019-01-23 00:00:00+00:00"
     }
+    print(r.data)
     assert r.status_code == 200
     assert r.json == expected_result
 
@@ -74,37 +91,34 @@ def test_top_tracks_endpoint_returns_right_result(client):
 	"end": "2019-01-25",
 	"limit":3
     }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-tracks',data=json.dumps(data),content_type='application/json')
     expected_result = {
+        "end": "2019-01-25 00:00:00+00:00",
         "start": "2019-01-23 00:00:00+00:00",
-        "end" : "2019-01-25 00:00:00+00:00",
         "top tracks": [
             {
-                "played": 68,
-                "track": {
-                    "album": "The Wave",
-                    "artist": "R3hab",
-                    "title": "Rumors (With Sofia Carson)"
-                }
+                "album": "Rumors (With Sofia Carson)",
+                "artist": "R3hab",
+                "played": 77,
+                "track": "Rumors (With Sofia Carson)"
             },
             {
-                "played": 9,
-                "track": {
-                    "album": "Rumors (With Sofia Carson)",
-                    "artist": "R3hab",
-                    "title": "Rumors (With Sofia Carson)"
-                }
+                "album": "No Budget (feat. Rich The Kid)",
+                "artist": "Kid Ink",
+                "played": 7,
+                "track": "No Budget (feat. Rich The Kid)"
             },
             {
-                "played": 6,
-                "track": {
-                    "album": "No Budget (feat. Rich The Kid)",
-                    "artist": "Kid Ink",
-                    "title": "No Budget (feat. Rich The Kid)"
-                }
+                "album": "Long Live the Champion",
+                "artist": "KB",
+                "played": 3,
+                "track": "Long Live the Champion"
             }
         ]
     }
+    print(r.json)
     assert r.json == expected_result
 
 
@@ -123,42 +137,32 @@ def test_top_albums_endpoint_returns_right_result(client):
 	"end": "2019-01-25",
 	"limit":3
     }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-albums',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
+        "end": "2019-01-25 00:00:00+00:00",
         "start": "2019-01-23 00:00:00+00:00",
-        "end" : "2019-01-25 00:00:00+00:00",
         "top albums": [
             {
                 "album": "The Wave",
-                "album artist": "R3hab",
+                "artist": "R3hab",
                 "played": 68
             },
             {
                 "album": "Rumors (With Sofia Carson)",
-                "album artist": "R3hab",
+                "artist": "R3hab",
                 "played": 9
             },
             {
                 "album": "No Budget (feat. Rich The Kid)",
-                "album artist": "Kid Ink",
+                "artist": "Kid Ink",
                 "played": 6
             }
         ]
     }
     assert r.json == expected_result
-
-@responses.activate
-def test_update_user_scrobbles(client):
-    lf_endpoint = f'{LF_API}/?method=user.getRecentTracks&user={LF_TEST_USERNAME}'
-    responses.add_callback(
-        responses.GET, lf_endpoint,
-        callback=standard_data_request_callback,
-        content_type='application/json',
-    )
-    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
-    assert r.status_code == 200
-    print(r.data)
 
 
 @responses.activate
@@ -170,15 +174,17 @@ def test_top_artists_endpoint_returns_right_result(client):
         content_type='application/json',
     )
     data = {
-	"start":"2019-01-23",
-	"end": "2019-01-25",
-	"limit":3
+        "start":"2019-01-23",
+        "end": "2019-01-25",
+        "limit":3
     }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/top-artists',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
+        "end": "2019-01-25 00:00:00+00:00",
         "start": "2019-01-23 00:00:00+00:00",
-        "end" : "2019-01-25 00:00:00+00:00",
         "top artists": [
             {
                 "artist": "R3hab",
@@ -186,7 +192,11 @@ def test_top_artists_endpoint_returns_right_result(client):
             },
             {
                 "artist": "Kid Ink",
-                "played": 6
+                "played": 7
+            },
+            {
+                "artist": "KB",
+                "played": 3
             }
         ]
     }
@@ -201,47 +211,81 @@ def test_scrobbles_endpoint_returns_scrobbles(client):
         content_type='application/json',
     )
     data = {
-        "start":"2019-01-23 00-00-00",
-        "end": "2019-01-23 12-00-00"
+        "start":"2019-01-24 12:00:00",
+        "end": "2019-01-24 12:30:00"
     }
+    r = client.get(f'/scrobbles/{LF_TEST_USERNAME}/update')
+
     r = client.get(f'/scrobbles/{LF_TEST_USERNAME}',data=json.dumps(data),content_type='application/json')
     assert r.status_code == 200
     expected_result = {
-        "start": "2019-01-23 00:00:00+00:00",
-        "end" : "2019-01-23 12:00:00+00:00",
+        "end": "2019-01-24 12:30:00+00:00",
         "scrobbles": [
             {
-                "date": "Wed, 23 Jan 2019 11:57:47 GMT",
+                "date": "Thu, 24 Jan 2019 12:28:48 GMT",
                 "track": {
-                    "album": "The Last Rocket",
-                    "artist": "Takeoff",
-                    "title": "She Gon Wink"
+                    "album": "Scorpion",
+                    "artist": "Drake",
+                    "title": "In My Feelings"
                 }
             },
             {
-                "date": "Wed, 23 Jan 2019 11:54:49 GMT",
+                "date": "Thu, 24 Jan 2019 12:25:30 GMT",
                 "track": {
-                    "album": "Splashin",
-                    "artist": "Rich the Kid",
-                    "title": "Splashin"
+                    "album": "Championships",
+                    "artist": "Meek Mill",
+                    "title": "Going Bad (feat. Drake)"
                 }
             },
             {
-                "date": "Wed, 23 Jan 2019 11:51:22 GMT",
+                "date": "Thu, 24 Jan 2019 12:21:39 GMT",
                 "track": {
-                    "album": "Feelin Like",
-                    "artist": "Flipp Dinero",
-                    "title": "Feelin Like"
+                    "album": "Nervous (feat. Lil Baby, Jay Critch & Rich the Kid)",
+                    "artist": "Famous Dex",
+                    "title": "Nervous (feat. Lil Baby, Jay Critch & Rich the Kid)"
                 }
             },
             {
-                "date": "Wed, 23 Jan 2019 11:48:50 GMT",
+                "date": "Thu, 24 Jan 2019 12:17:41 GMT",
                 "track": {
-                    "album": "The Wave",
-                    "artist": "R3hab",
-                    "title": "Rumors (With Sofia Carson)"
+                    "album": "Queen (Deluxe)",
+                    "artist": "Nicki Minaj",
+                    "title": "gOOd fOrM (feaT. liL WaynE)"
+                }
+            },
+            {
+                "date": "Thu, 24 Jan 2019 12:12:14 GMT",
+                "track": {
+                    "album": "MoshPit (feat. Juice WRLD)",
+                    "artist": "Kodak Black",
+                    "title": "MoshPit (feat. Juice WRLD)"
+                }
+            },
+            {
+                "date": "Thu, 24 Jan 2019 12:09:30 GMT",
+                "track": {
+                    "album": "No Budget (feat. Rich The Kid)",
+                    "artist": "Kid Ink",
+                    "title": "No Budget (feat. Rich The Kid)"
+                }
+            },
+            {
+                "date": "Thu, 24 Jan 2019 12:06:12 GMT",
+                "track": {
+                    "album": "No Budget (feat. Rich The Kid)",
+                    "artist": "Kid Ink",
+                    "title": "No Budget (feat. Rich The Kid)"
+                }
+            },
+            {
+                "date": "Thu, 24 Jan 2019 12:02:02 GMT",
+                "track": {
+                    "album": "No Budget (feat. Rich The Kid)",
+                    "artist": "Kid Ink",
+                    "title": "No Budget (feat. Rich The Kid)"
                 }
             }
-        ]
+        ],
+        "start": "2019-01-24 12:00:00+00:00"
     }
     assert r.json == expected_result

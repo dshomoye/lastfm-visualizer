@@ -45,7 +45,7 @@ class LastFMHelper:
             last_update = self.db.get_last_update()
             if last_update <= datetime.now():
                 payload = {'from': int(last_update.timestamp())}
-                payload['to'] = int(datetime.now().timestamp())
+                payload['to'] = datetime.now()
                 s =self._get_scrobbles_from_lf(payload=payload)
         return  s
     
@@ -58,7 +58,10 @@ class LastFMHelper:
         print(f"downloading scrobbles for {self.username}... started at {datetime.now()}")
         while total_pages > page:
             page+=1
-            scrobbles_in_page = self.__get_scrobbles_page(page=page,payload=payload)
+            try:
+                scrobbles_in_page = self.__get_scrobbles_page(page=page,payload=payload)
+            except ScrobbleFetchFailed:
+                self.db.set_user_update_to_min()
             parsed_scrobbles = self.__parse_scrobbles(scrobbles_in_page["recenttracks"]["track"])
             self.SCROBBLES_CACHE['scrobbles']+= parsed_scrobbles
             self._write_scrobbles_to_db(parsed_scrobbles)

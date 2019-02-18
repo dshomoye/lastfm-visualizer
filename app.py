@@ -5,7 +5,9 @@ from lib.models import db
 app = Flask(__name__)
 
 # app.config['SQLALCHEMY_ECHO'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:dqcAuyHTS8nR@scrobblesdb.cbz9hqclu0ef.us-east-1.rds.amazonaws.com/scrobbles'
+# app.config['SQLALCHEMY_DATABASE_URI']='sqlite://'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:dqcAuyHTS8nR@scrobblesdb.cbz9hqclu0ef.us-east-1.rds.amazonaws.com/scrobbles?charset=utf8'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db.init_app(app)
 
 app.debug = True

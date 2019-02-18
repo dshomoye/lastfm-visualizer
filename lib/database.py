@@ -13,15 +13,18 @@ class DbHelper():
     def __init__(self,username: str):
         from app import db
         db.create_all()
-        self.user = User(name=username)
         if not db:
             raise ValueError("DB Initialization failed")
         else:
             self.session = db.session
+        self.user = self.session.query(User).filter_by(name = username).first()
+        if not self.user: self.user = User(name=username)
 
 
     def add_user_to_db(self):
-        if self.is_new_user(self.user.name): self.session.add(self.user)
+        self.session.add(self.user)
+        self.session.commit()
+        self.user = self.session.query(User).filter_by(name = self.user.name).first()
     
     def get_last_update(self):
         return self.session.query(User).filter_by(name=self.user.name).first().last_update
@@ -31,10 +34,11 @@ class DbHelper():
         return self.session.query(Scrobble).all()
 
     def get_scrobbles_in_period(self, start_period: datetime, end_period: datetime) -> List[Scrobble]:
-        return self.session.query(Scrobble)\
+        result = self.session.query(Scrobble)\
             .filter(Scrobble.datetime>=start_period)\
                 .filter(Scrobble.datetime<=end_period)\
                     .filter(Scrobble.user==self.user).all()
+        return [ scrobble.to_dict() for scrobble in result ]
 
     
     def get_top_tracks_for_period(self,start_period: datetime, end_period: datetime, limit: int=5) -> List[Dict[str,Any]]:
@@ -61,7 +65,7 @@ class DbHelper():
             .join(Scrobble.track)\
             .filter(Scrobble.datetime>=start_period).filter(Scrobble.datetime<=end_period)\
                  .filter(Scrobble.user==self.user)\
-            .group_by(Track.title).order_by(desc('qty'))\
+            .group_by(Track.album).order_by(desc('qty'))\
             .limit(limit).all()
         results: List[Dict] = []
 
@@ -91,7 +95,7 @@ class DbHelper():
             })
         return results
     
-    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> Dict[datetime,int]:
+    def get_track_count_in_period(self,start_period: datetime,end_period: datetime, unit="days") -> Dict[str,int]:
         unit_map = {
             'hours': [ Scrobble.date, func.extract('hour',Scrobble.time)],
             'days': [func.extract('day',Scrobble.date), Scrobble.date],
@@ -120,7 +124,7 @@ class DbHelper():
             f = transform_map[unit]
             temp = list(result)
             c = temp.pop()
-            results[f(*temp)]=c
+            results[str(f(*temp))]=c
         
         return results
     
@@ -134,31 +138,35 @@ class DbHelper():
             return track
 
     def _add_or_ignore_to_db(self, model, object, **kwargs):
-        print(f"adding object:÷{object}")
         r = self.session.query(model).filter_by(**kwargs).first()
         if not r:
-            print(f"adding not in db:{object}")
             self.session.add(object)
             return object
         else: 
-            print(f"object in db:{r}")
             return r
 
     def write_scrobbles_to_db(self, scrobbles: List[Scrobble]) -> None:
+        i=0
         for scrobble in scrobbles:
-            track = scrobble.track
+            track=scrobble.track
+            t = self._add_or_ignore_to_db(Track,track,title=track.title,artist=track.artist,album=track.album)
+            # t = self.add_track_to_db(track,title=track.title,artist=track.artist,album=track.album)
             scrobble.track=None
             self._add_or_ignore_to_db(Scrobble,scrobble,date=scrobble.date,time=scrobble.time)
+            scrobble.track = t
             scrobble.user = self.user
-            track = self.add_track_to_db(track,title=track.title,artist=track.artist,album=track.album)
-            scrobble.track=track
             self.session.commit()
+            i+=1
         self.user.last_update = datetime.now()
         self.session.commit()
     
     def is_new_user(self,username: str) -> bool:
         r = self.session.query(User).filter_by(name = username).first()
         return r is None
+    
+    def set_user_update_to_min(self):
+        self.user.last_update = datetime(1999,1,1)
+        self.session.commit()
 
 if __name__ == "__main__":
     helper = DbHelper(username='testuser')

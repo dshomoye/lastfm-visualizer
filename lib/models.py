@@ -1,5 +1,5 @@
 from sqlalchemy import func, desc
-from sqlalchemy import Column, String, Date, Time, DateTime, Integer, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, Date, Time, DateTime, Integer, ForeignKey, UniqueConstraint, Unicode
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker, relationship
 from flask_sqlalchemy import SQLAlchemy
@@ -11,7 +11,9 @@ db = SQLAlchemy()
 
 class Track(db.Model):
     __tablename__ = 'tracks'
-    __table_args__ = (UniqueConstraint('title','album','artist'),)
+    __table_args__ = (UniqueConstraint('title','album','artist'),{
+        'mysql_row_format': 'DYNAMIC'
+    })
 
     id = Column(Integer, primary_key=True)
     title = Column(String(256), index=True)
@@ -30,7 +32,9 @@ class Track(db.Model):
 
 class User(db.Model):
     __tablename__ = 'users'
-    __table_args__ = (UniqueConstraint('name'),)
+    __table_args__ = (UniqueConstraint('name'),{
+        'mysql_row_format': 'DYNAMIC'
+    })
     id = Column(Integer, primary_key=True)
     name = Column(String(256))
     last_update = Column(DateTime)
@@ -40,7 +44,9 @@ class User(db.Model):
 
 class Scrobble(db.Model): 
     __tablename__ = 'scrobbles'
-    __table_args__ = (UniqueConstraint('date','time','user_id'),)
+    __table_args__ = (UniqueConstraint('date','time','user_id'), {
+        'mysql_row_format': 'DYNAMIC'
+    })
     id = Column(Integer, primary_key=True)
     timestamp = Column(Integer)
     date = Column(Date)
@@ -61,3 +67,9 @@ class Scrobble(db.Model):
 
     def __repr__(self):
         return f"<Scrobble: Date:{self.date} {self.time} {self.track} {self.user} >"
+    
+    def to_dict(self):
+        return {
+            "date":self.datetime,
+            "track":self.track.to_dict()
+        }

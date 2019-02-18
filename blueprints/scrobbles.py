@@ -41,6 +41,7 @@ def get_scrobbles(lf_username):
         }
         return jsonify(track_scrobbles)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])
@@ -58,6 +59,7 @@ def get_top_tracks(lf_username):
         }
         return jsonify(top_tracks)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-albums', methods=['GET'])
@@ -109,6 +111,7 @@ def get_listening_frequency(lf_username):
         }
         return jsonify(frequency)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
             
 
