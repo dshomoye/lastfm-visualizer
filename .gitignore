@@ -1,0 +1,4 @@
+venv
+test_reports
+.coverage
+.pytest_cache/v/cache/nodeids

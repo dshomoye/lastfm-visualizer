@@ -1,8 +1,8 @@
 # LastFM API wrapper
 
-API orchestration to get better insight into LastFM listening history/date bank.
+![CircleCI](https://circleci.com/gh/dshomoye/lastfm-visualizer.svg?style=svg&circle-token=bfe9a145894b73da27fbe342d038da72fe6c9e79)
 
-> Also, the lastFM API is *not* great... 🤨
+API orchestration to get better insight into LastFM listening history/date bank.
 
 Currently only relies on history to provide:
 
@@ -35,7 +35,8 @@ sample response:
 ```json
 
 {
-    "date": "2018-05-02 00:00:00 2018-05-03 12:00:00",
+    "start": "2018-05-02 00:00:00",
+    "end": "2018-05-03 12:00:00",
     "scrobbles": [
         {
             "Album": "Can't Hide feat. Ashe",
@@ -80,7 +81,8 @@ sample response:
 ```json
 
 {
-    "date": "2018-05-02 00:00:00 2018-05-03 12:00:00",
+    "start": "2018-05-02 00:00:00",
+    "end": "2018-05-03 12:00:00",
     "top tracks": [
         {
             "played": 2,
@@ -120,7 +122,8 @@ sample repsonse:
 
 ```json
 {
-    "date": "2017-06-02 00:00:00 2017-06-16 12:00:00",
+    "start": "2017-06-02 00:00:00",
+    "end": "2017-06-16 12:00:00",
     "top albums": [
         {
             "album": "V2...",
@@ -148,7 +151,8 @@ sample response:
 
 ```json
 {
-    "date": "2017-05-02 00:00:00 2018-05-03 12:00:00",
+    "start": "2017-05-02 00:00:00", 
+    "end": "2018-05-03 12:00:00",
     "top albums": [
         {
             "artist": "Phyno",
@@ -207,6 +211,7 @@ sample reponse:
         "2018-06-19 14:00:00": 4,
         "2018-06-19 15:00:00": 0,
         ...
-    }
+    },
+    "start": "2018-06-19 00:00:00"
 }
 ```
