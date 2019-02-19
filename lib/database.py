@@ -171,30 +171,5 @@ class DbHelper():
 if __name__ == "__main__":
     helper = DbHelper(username='testuser')
 
-    track1 = Track(title='Rumors',artist='R3hab',album='The Wave')
-    track2 = Track(title='Many Words',artist='DROELOE',album='Many Words')
-    time1 = datetime.now()
-    time2 = datetime(2019,2,2,18,0,0)
-    time3 = datetime(2019,2,2,16,0,0)
-    time4 = datetime(2019,2,3,3,0,0)
-    time5 = datetime(2019,3,3,4,0,0)
-    time6 = datetime(2019,2,5,8,0,0)
-    time7 = datetime(2019,2,6)
-    time8 = datetime(2019,2,7)
-    scrobble1 = Scrobble(track=track1,timestamp=int(time1.timestamp()))
-    scrobble2 = Scrobble(track=track2,timestamp=int(time2.timestamp()))
-    scrobble3 = Scrobble(track=track1,timestamp=int(time3.timestamp()))
-    scrobble4 = Scrobble(track=track1,timestamp=int(time4.timestamp()))
-    scrobble5 = Scrobble(track=track2,timestamp=int(time5.timestamp()))
-    scrobble6 = Scrobble(track=track1,timestamp=int(time6.timestamp()))
-    scrobble7 = Scrobble(track=track2,timestamp=int(time7.timestamp()))
-    scrobble8 = Scrobble(track=track1,timestamp=int(time8.timestamp()))
-    scrobbles = [scrobble1,scrobble2,scrobble1,scrobble3,scrobble4,scrobble5,scrobble6,scrobble7,scrobble8]
-    helper.write_scrobbles_to_db(scrobbles)
-    #print(helper.get_scrobbles_in_period(time3,time7))
-    #print(helper.get_track_count_in_period(time3,time5,unit='years'))
-    #print(helper.get_top_albums_for_period(time3,time7))
-    print(helper.get_top_artists_for_period(time3,time7))
-    #print(helper.get_top_tracks_for_period(time3,time7))
 
 

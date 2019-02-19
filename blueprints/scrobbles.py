@@ -7,7 +7,6 @@ from dateutil.parser import parse
 from dateutil.tz import UTC # type: ignore
 import typing
 from lib.database import DbHelper
-import lib.database as db
 from lib.lastfm import LastFMHelper
 
 scrobbles_api = Blueprint('scrobbles',__name__)
