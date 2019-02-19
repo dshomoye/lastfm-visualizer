@@ -1,12 +1,14 @@
 from flask import Flask
+import os
 # from flask_sqlalchemy import SQLAlchemy
 from lib.models import db
 
 app = Flask(__name__)
 
+rds_user = os.getenv('RDS_USER',"")
+rds_p = os.getenv("RDS_SEC","")
 # app.config['SQLALCHEMY_ECHO'] = True
-# app.config['SQLALCHEMY_DATABASE_URI']='sqlite://'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:dqcAuyHTS8nR@scrobblesdb.cbz9hqclu0ef.us-east-1.rds.amazonaws.com/scrobbles?charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{rds_user}:{rds_p}@scrobblesdb.cbz9hqclu0ef.us-east-1.rds.amazonaws.com/scrobbles?charset=utf8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db.init_app(app)
 

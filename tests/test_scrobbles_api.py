@@ -115,7 +115,6 @@ def test_top_tracks_endpoint_returns_right_result(client):
             }
         ]
     }
-    print(r.json)
     assert r.json == expected_result
 
 
