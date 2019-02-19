@@ -1,115 +1,75 @@
+from sqlalchemy import func, desc
+from sqlalchemy import Column, String, Date, Time, DateTime, Integer, ForeignKey, UniqueConstraint, Unicode
 from datetime import datetime
-from functools import total_ordering
-from dateutil.tz import UTC # type: ignore
-from typing import Optional
+from sqlalchemy.orm import sessionmaker, relationship
+from flask_sqlalchemy import SQLAlchemy
+from typing import List, Dict, Any
+# from app import db
 
-class Artist:
-    def __init__(self,name: str):
-        self.name = name
+db = SQLAlchemy()
 
-class Album:
-    def __init__(self,name: str, artist: Artist):
-        self.artist = artist
-        self.name = name
-    
+
+class Track(db.Model):
+    __tablename__ = 'tracks'
+    __table_args__ = (UniqueConstraint('title','album','artist'),{
+        'mysql_row_format': 'DYNAMIC'
+    })
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(256), index=True)
+    album = Column(String(256))
+    artist = Column(String(256))
+
     def __repr__(self):
-        return f'{{Album: {self.name}, Artist: {self.artist.name} }}'
-
-    def __hash__(self):
-        return hash(repr(self))
-
-
-class Track:
-    def __init__(self, title: str, artist_name: str, album_name: str, artist: Artist = None, album: Album = None):
-        '''Track object with track info
-        
-        Args:
-            title (str): [description]
-            artist_name (str): [description]
-            album_name (str): [description]
-            artist (Artist, optional): Defaults to None. [description]
-            album (Album, optional): Defaults to None. [description]
-        '''
-
-
-        self.title = title
-        self.artist_name = artist_name
-        self.album_name = album_name
-        self.artist: Optional[Artist] = artist
-        self.album: Optional[Album] = album
-        self.dict = {
-            "title": self.title,
-            "artist": self.artist_name,
-            "album": self.album_name
-        }
+        return str(self.to_dict())
     
-
-    def __eq__(self,other):
-        if not isinstance(other, Track): return NotImplemented
-        if ( self.title == other.title and 
-                self.album_name == other.album_name and 
-                self.artist_name == self.artist_name):
-            #only match if all attribute are same
-            return True
-        
-    def __repr__(self):
-        return f"{{Title: {self.title}, Album: {self.album_name}, Artist: {self.artist_name}  }}"
-
-    def __hash__(self):
-        return hash(repr(self))
-
-
-@total_ordering
-class Scrobble:
-
-    def __init__(self,track: Track, date: int):
-        """[summary]
-        
-        Args:
-            track (Track): [description]
-            date (int): [description]
-        
-        Raises:
-            AttributeError: 
-            ValueError: when getting datetime failes
-        """
-
-        if not isinstance(track, Track): raise AttributeError("must supply a track object to create scrobble!")
-        self.track = track
-        try:
-            self.date = datetime.fromtimestamp(date,tz=UTC)
-        except ValueError:
-            raise ValueError(f"failed to create Scrobble object")
-        self.dict = {
-            "track": self.track.dict,
-            "date":  self.date
+    def to_dict(self):
+        return {
+            "title":self.title,
+            "album":self.album,
+            "artist":self.artist
         }
 
-    @staticmethod
-    def from_dict(scrobble: dict):
-        t= Track(
-            title=scrobble['track']['title'],
-            artist_name=scrobble['track']['artist'],
-            album_name=scrobble['track']['album']
-        )
-        return Scrobble(track=t,date=scrobble['date'].timestamp())
+class User(db.Model):
+    __tablename__ = 'users'
+    __table_args__ = (UniqueConstraint('name'),{
+        'mysql_row_format': 'DYNAMIC'
+    })
+    id = Column(Integer, primary_key=True)
+    name = Column(String(256))
+    last_update = Column(DateTime)
 
-    def __lt__(self,other):
-        if not isinstance(other, Scrobble): return NotImplemented
-        return self.date < other.date
-    
-    def __eq__(self,other):
-        if not isinstance(other, Scrobble): return NotImplemented
-        return self.date == other.date and self.track == other.track
-    
     def __repr__(self):
-        return f"{self.dict}"
-    
-    def __hash__(self):
-        return int(self.date.timestamp())
+        return f'<User: {self.name}'
 
+class Scrobble(db.Model): 
+    __tablename__ = 'scrobbles'
+    __table_args__ = (UniqueConstraint('date','time','user_id'), {
+        'mysql_row_format': 'DYNAMIC'
+    })
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(Integer)
+    date = Column(Date)
+    time = Column(Time)
+    datetime = Column(DateTime)
+    track_id = Column(Integer, ForeignKey('tracks.id'))
+    track = relationship('Track')
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship('User')
 
-if __name__ == "__main__":
-    test = Track(artist_name="Moelogo",title="Ireti", album_name="Ireti")
-    print(test)
+    def __init__(self,*args,**kwargs):
+        super(Scrobble, self).__init__(**kwargs)
+        self.timestamp = kwargs['timestamp']
+        self.datetime = datetime.fromtimestamp(self.timestamp)
+        self.date = self.datetime.date()
+        self.time = self.datetime.time()
+        self.track: Track = kwargs['track']
+
+    def __repr__(self):
+        return f"<Scrobble: Date:{self.date} {self.time} {self.track} {self.user} >"
     
+    def to_dict(self):
+        return {
+            "date":self.datetime,
+            "track":self.track.to_dict()
+        }

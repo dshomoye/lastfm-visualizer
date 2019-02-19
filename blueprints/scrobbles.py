@@ -1,16 +1,27 @@
 from flask import Blueprint,request, jsonify, Response, make_response
-from lib.data import Scrobbleswrangler
+# from lib.data import Scrobbleswrangler
 from lib.errors import LastFMUserNotFound, ScrobbleFetchFailed
-from google.api_core.exceptions import ResourceExhausted as GoogleQuotaLimitError
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse
 from dateutil.tz import UTC # type: ignore
 import typing
+from lib.database import DbHelper
+from lib.lastfm import LastFMHelper
 
 scrobbles_api = Blueprint('scrobbles',__name__)
 
-__scrobblewranglers: typing.Dict[str,Scrobbleswrangler] = {}
+
+@scrobbles_api.route('/<username>/update', methods=['POST','GET'])
+def update_user_scrobbles(username):
+    try:
+        lf = LastFMHelper(username=username)
+        r = lf.get_or_update_user_scrobbles()
+        if r: return "updated", 200
+    except Exception as e:
+        raise e
+        return __return_response_for_exception(e)
+    
 
 @scrobbles_api.route('/<lf_username>', methods=['GET'])
 def get_scrobbles(lf_username):
@@ -20,15 +31,16 @@ def get_scrobbles(lf_username):
         end = parse(req['end']).replace(tzinfo=UTC)
         #end = end.replace(tzinfo=UTC)
         #start = start.replace(tzinfo=UTC)
-        scobble_data = __get_scrobble_data(lf_username)
+        db = DbHelper(lf_username)
         track_scrobbles = {
             "start" : f'{start}',
             "end" : f'{end}',
-            "scrobbles": scobble_data.get_scrobbles_in_period(
+            "scrobbles": db.get_scrobbles_in_period(
                 start_period=start,end_period=end)
         }
         return jsonify(track_scrobbles)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-tracks', methods=['GET'])
@@ -38,14 +50,15 @@ def get_top_tracks(lf_username):
         start = parse(req['start']).replace(tzinfo=UTC)
         end = parse(req['end']).replace(tzinfo=UTC)
         limit = req['limit']
-        scobble_data = __get_scrobble_data(lf_username)
+        db = DbHelper(lf_username)
         top_tracks = {
             "start" : f'{start}',
             "end" : f'{end}',
-            "top tracks": scobble_data.get_top_tracks_for_period(start,end,int(limit))
+            "top tracks": db.get_top_tracks_for_period(start,end,int(limit))
         }
         return jsonify(top_tracks)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
 
 @scrobbles_api.route('/<lf_username>/top-albums', methods=['GET'])
@@ -55,11 +68,11 @@ def get_top_albums(lf_username):
         start = parse(req['start']).replace(tzinfo=UTC)
         end = parse(req['end']).replace(tzinfo=UTC)
         limit = req['limit']
-        scobble_data = __get_scrobble_data(lf_username)
+        db = DbHelper(lf_username)
         top_tracks = {
             "start" : f'{start}',
             "end" : f'{end}',
-            "top albums": scobble_data.get_top_albums_for_period(start,end,limit)
+            "top albums": db.get_top_albums_for_period(start,end,limit)
         }
         return jsonify(top_tracks)
     except Exception as e:
@@ -72,11 +85,11 @@ def get_top_artist(lf_username):
         start = parse(req['start']).replace(tzinfo=UTC)
         end = parse(req['end']).replace(tzinfo=UTC)
         limit = req['limit']
-        scobble_data = __get_scrobble_data(lf_username)
+        db = DbHelper(lf_username)
         top_tracks = {
             "start" : f'{start}',
             "end" : f'{end}',
-            "top artists": scobble_data.get_top_artists_for_period(start,end,limit)
+            "top artists": db.get_top_artists_for_period(start,end,limit)
         }
         return jsonify(top_tracks)
     except Exception as e:
@@ -89,14 +102,15 @@ def get_listening_frequency(lf_username):
         start = parse(req['start']).replace(tzinfo=UTC)
         end = parse(req['end']).replace(tzinfo=UTC)
         scale = req['scale']
-        scobble_data = __get_scrobble_data(lf_username)
+        db = DbHelper(lf_username)
         frequency = {
             "start": str(start),
             "end": str(end),
-            "frequency": scobble_data.get_track_count_in_period(start_period=start,end_period=end,unit=scale)
+            "frequency": db.get_track_count_in_period(start_period=start,end_period=end,unit=scale)
         }
         return jsonify(frequency)
     except Exception as e:
+        raise e
         return __return_response_for_exception(e)
             
 
@@ -107,17 +121,8 @@ def __return_response_for_exception(error: Exception) -> Response:
     elif isinstance(error,ScrobbleFetchFailed):
         e = {"errors":["unable to get scrobbles from lastFM",f"{error}"]}
         return make_response(jsonify(e),500)
-    elif isinstance(error,GoogleQuotaLimitError):
-        e = {"errors":["request limit for firebase has been reach for the day, come back tomorrow 🙃"]}
-        return make_response(jsonify(e),429)
     else:
         fetch_failed = {"errors": [str(error)]}
         return make_response(jsonify(fetch_failed), 400) 
-
-def __get_scrobble_data(lf_username: str) -> Scrobbleswrangler:
-    if lf_username not in __scrobblewranglers:
-        __scrobblewranglers[lf_username] = Scrobbleswrangler(lastfm_username=lf_username)
-    return __scrobblewranglers[lf_username]
-    
 
 

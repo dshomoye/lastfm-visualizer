@@ -2,3 +2,5 @@ requests
 python-dateutil
 Flask
 firebase-admin
+sqlalchemy
+flask-sqlalchemy
