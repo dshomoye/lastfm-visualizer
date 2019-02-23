@@ -99,7 +99,8 @@ class DbHelper():
         unit_map = {
             'hours': [ Scrobble.date, func.extract('hour',Scrobble.time)],
             'days': [func.extract('day',Scrobble.date), Scrobble.date],
-            'weekdays':[func.extract('year',Scrobble.date),func.extract('month',Scrobble.date),func.extract('dow',Scrobble.date).label('weekday')],
+            #weekday broken for now
+            'weekdays':[func.extract('year',Scrobble.date),func.extract('month',Scrobble.date),func.extract('dayofweek',Scrobble.date).label('weekday')],
             'months':[func.extract('year',Scrobble.date),func.extract('month',Scrobble.date)],
             'years':[func.extract('year',Scrobble.date)]
         }
@@ -170,6 +171,3 @@ class DbHelper():
 
 if __name__ == "__main__":
     helper = DbHelper(username='testuser')
-
-
-

@@ -1,5 +1,6 @@
 from flask import Flask
 import os
+import logging
 # from flask_sqlalchemy import SQLAlchemy
 from lib.models import db
 
@@ -20,8 +21,10 @@ app.register_blueprint(scrobbles_api, url_prefix='/scrobbles')
 @app.route('/')
 @app.route('/ping')
 def home():
+    app.logger.info('PING hit!')
     return 'Hello World!'
 
 
 if __name__ == '__main__':
+    app.logger.debug('app is starting')
     app.run()

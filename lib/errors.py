@@ -6,6 +6,6 @@ class LastFMUserNotFound(Exception):
 
 class FireStoreError(Exception):
     pass
-
-class FireStoreLimitExceedError(FireStoreError):
+    
+class InValidParameter(Exception):
     pass
