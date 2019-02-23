@@ -72,7 +72,6 @@ class LastFMHelper:
         print(f"downloaded, ended at {datetime.now()}")
         if self.SCROBBLES_CACHE['scrobbles']:
             self.SCROBBLES_CACHE['last_update']=int(datetime.now().timestamp())
-        if not self.db: self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
     
     def _write_scrobbles_to_db(self, scrobbles: List[Scrobble]) -> None:
@@ -102,10 +101,7 @@ class LastFMHelper:
         Returns:
             bool:
         """
-        try:
-            return self.db.is_new_user(self.username)
-        except Exception:
-            return not self.__read_scrobbles_from_cache_file()
+        return self.db.is_new_user(self.username)
     
 
     def __get_scrobbles_page(self,page: int, payload: dict = {}) -> dict:
@@ -131,27 +127,6 @@ class LastFMHelper:
         elif r.status_code != 200:
             raise ScrobbleFetchFailed(f"An error occured getting srobbles from LastFM, response:{r.text}")
         return r.json() 
-
-
-    def __write_scrobbles_to_cache_file(self) -> None:
-        with open(self.SCROBBLE_FILE, 'wb') as output:
-            pickle.dump(self.SCROBBLES_CACHE, output, pickle.HIGHEST_PROTOCOL)
-    
-    
-    def __read_scrobbles_from_cache_file(self) -> bool:
-        """read scrobble from cache file and save to instance cache dict
-        
-        Returns:
-            bool: if read and save was successful
-        """
-
-        try:
-            with open(self.SCROBBLE_FILE, 'rb') as input:
-                self.SCROBBLES_CACHE = pickle.load(input)
-            return True
-        except:
-            return False
-        
 
     def __do_request(self, http_method, payload):
         """makes a `request` call using the provided data:
