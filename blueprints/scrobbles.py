@@ -160,5 +160,3 @@ def _get_request_param(r):
     else:
         current_app.logger.warning(f"No arguments/parameters in request!")
         return None
-
-

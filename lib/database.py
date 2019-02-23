@@ -171,6 +171,3 @@ class DbHelper():
 
 if __name__ == "__main__":
     helper = DbHelper(username='testuser')
-
-
-
