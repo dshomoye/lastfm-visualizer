@@ -3,7 +3,7 @@
 ![CircleCI](https://circleci.com/gh/dshomoye/lastfm-visualizer.svg?style=svg&circle-token=bfe9a145894b73da27fbe342d038da72fe6c9e79)
 
 API orchestration to get better insight into LastFM listening history/date bank.
-
+available at [https://lastfm-wrapper.appspot.com]
 Currently only relies on history to provide:
 
 1: Streaming history.
