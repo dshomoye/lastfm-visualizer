@@ -72,7 +72,7 @@ class LastFMHelper:
         print(f"downloaded, ended at {datetime.now()}")
         if self.SCROBBLES_CACHE['scrobbles']:
             self.SCROBBLES_CACHE['last_update']=int(datetime.now().timestamp())
-        self.__write_scrobbles_to_cache_file()
+        if not self.db: self.__write_scrobbles_to_cache_file()
         return self.SCROBBLES_CACHE
     
     def _write_scrobbles_to_db(self, scrobbles: List[Scrobble]) -> None:
